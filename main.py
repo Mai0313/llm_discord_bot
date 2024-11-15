@@ -19,9 +19,8 @@ API_URL = "https://api-inference.huggingface.co/models/strangerzonehf/Flux-Anime
 API_TOKEN = "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"  # noqa: S105
 headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
-intents = discord.Intents.default()
-intents.messages = True  # 啟用訊息接收
-intents.message_content = True  # 啟用訊息內容接收
+# 啟用所有 Intents
+intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 
@@ -39,7 +38,7 @@ async def update_progress(message: discord.Message, step: int, total_steps: int)
 
 
 def log_message_to_file(message: discord.Message, save_dir: str) -> None:
-    """將訊息記錄到檔案，包含附件下載"""
+    """將訊息記錄到檔案，包含附件和貼圖下載"""
     # 確保資料夾存在
     os.makedirs(save_dir, exist_ok=True)
 
@@ -47,19 +46,33 @@ def log_message_to_file(message: discord.Message, save_dir: str) -> None:
     log_file = os.path.join(save_dir, "log.txt")
 
     # 記錄訊息內容
+    channel_info = f"{message.channel.name} ({message.channel.id})"
     with open(log_file, "a", encoding="utf-8") as f:
-        message_info = f"{message.author} ({message.author.id}) at {message.created_at}:\n"
+        message_info = f"{message.author} ({message.author.id}) at {message.created_at.strftime('%Y-%m-%d %H:%M:%S')} in {channel_info}:\n"
         message_content = f"{message.content}\n"
         f.write(message_info)
         f.write(message_content)
         f.write("-" * 40 + "\n")
-        console.print(message_info)
-        console.print(message_content)
+
+        logfire.info(
+            f"{message.author.name}: {message.content}",
+            author_id=message.author.id,
+            created_time=message.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            channel_name=message.channel.name,
+            channel_id=message.channel.id,
+            message_content=message.content,
+        )
 
     # 處理附件
     for attachment in message.attachments:
         attachment_path = os.path.join(save_dir, attachment.filename)
         asyncio.run_coroutine_threadsafe(attachment.save(attachment_path), bot.loop)
+
+    # 處理貼圖
+    if message.stickers:
+        for sticker in message.stickers:
+            sticker_path = os.path.join(save_dir, f"sticker_{sticker.id}.png")
+            asyncio.run_coroutine_threadsafe(sticker.save(sticker_path), bot.loop)
 
 
 @bot.event
@@ -81,7 +94,7 @@ async def on_message(message: discord.Message) -> None:
 
     # 生成保存路徑（依據日期）
     today = datetime.date.today().isoformat()
-    save_dir = os.path.join("logs", today, str(message.channel.id))
+    save_dir = os.path.join("logs", today, f"{message.channel.name}_{message.channel.id}")
 
     # 記錄訊息
     log_message_to_file(message, save_dir)
