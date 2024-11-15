@@ -23,12 +23,12 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 
 # 非同步查詢 Hugging Face API 的功能
-async def query(payload: dict) -> bytes:
+async def gen_image(prompt: str) -> bytes:
     async with httpx.AsyncClient(base_url="https://api-inference.huggingface.co/models") as client:
         response = await client.post(
             url="/strangerzonehf/Flux-Animex-v2-LoRA",
             headers={"Authorization": f"Bearer {config.huggingface_api_token}"},
-            json=payload,
+            json={"inputs": prompt},
             timeout=60,
         )
         if response.status_code != 200:
@@ -124,8 +124,9 @@ async def gen(ctx: commands.Context, *, prompt: str) -> None:
 
     # 請求 Hugging Face API 生成圖片
     try:
-        image_bytes = await query({"inputs": prompt})
-        image = Image.open(BytesIO(image_bytes))
+        image_bytes = await gen_image(prompt=prompt)
+        bytes_io = BytesIO(image_bytes)
+        image = Image.open(bytes_io)
 
         # 將圖片存為暫時檔案並發送
         with BytesIO() as image_binary:
