@@ -129,25 +129,25 @@ async def gen(ctx: commands.Context, *, prompt: str) -> None:
         await msg.edit(content=f"{ctx.author.mention} 圖片生成失敗\n錯誤: {e!s}")
 
 
-@bot.command()
+@bot.command(name="xAI")
 async def xai(ctx: commands.Context, *, prompt: str) -> None:
     response = await llm_services.get_xai_reply(prompt=prompt)
     await ctx.send(f"{response.choices[0].message.content}")
 
 
-@bot.command()
+@bot.command(name="OpenAI")
 async def oai(ctx: commands.Context, *, prompt: str) -> None:
     response = await llm_services.get_oai_reply(prompt=prompt)
     await ctx.send(f"{response.choices[0].message.content}")
 
 
-@bot.command()
+@bot.command(name="Google AI")
 async def gai(ctx: commands.Context, *, prompt: str) -> None:
     response = await llm_services.get_gai_reply(prompt=prompt)
     await ctx.send(f"{response.choices[0].message.content}")
 
 
-@bot.command()
+@bot.command(name="xAI Streaming")
 async def xais(ctx: commands.Context, *, prompt: str) -> None:
     msg = await ctx.send("生成中...")  # 初始化訊息
     accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容，初始包括用戶標記
@@ -175,7 +175,7 @@ async def xais(ctx: commands.Context, *, prompt: str) -> None:
         await msg.edit(content=f"{ctx.author.mention} 無有效回應，請嘗試其他提示。")
 
 
-@bot.command()
+@bot.command(name="OpenAI Streaming")
 async def oais(ctx: commands.Context, *, prompt: str) -> None:
     msg = await ctx.send("生成中...")  # 初始化訊息
     accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容
@@ -203,7 +203,7 @@ async def oais(ctx: commands.Context, *, prompt: str) -> None:
         await msg.edit(content=f"{ctx.author.mention} 無有效回應，請嘗試其他提示。")
 
 
-@bot.command()
+@bot.command(name="Google AI Streaming")
 async def gais(ctx: commands.Context, *, prompt: str) -> None:
     msg = await ctx.send("生成中...")  # 初始化訊息
     accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容
