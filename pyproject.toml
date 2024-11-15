@@ -70,6 +70,8 @@ dependencies = [
     "pillow>=11.0.0",
     "requests>=2.32.3",
     "logfire>=2.3.0",
+    "openai>=1.54.4",
+    "pydantic-settings>=2.6.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.9"
@@ -372,6 +374,7 @@ keep-runtime-typing = true
 "*.ipynb" = ["T201", "F401", "S105", "F811", "ANN", "PERF", "SLF"]
 "tests/*" = ["S101", "ANN"]
 "notebooks/exp/*.ipynb" = ["UP", "DOC", "RUF", "D", "C"]
+"examples/*" = ["T201", "F401", "S105", "F811", "ANN", "PERF", "SLF"]
 
 [tool.ruff.lint.isort]
 case-sensitive = true

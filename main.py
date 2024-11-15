@@ -10,15 +10,12 @@ import discord
 import logfire
 from discord.ext import commands
 from rich.console import Console
+from src.types.config import Config
 
 logfire.configure()
 
+config = Config()
 console = Console()
-
-# 設定你的 Hugging Face API Token
-API_URL = "https://api-inference.huggingface.co/models/strangerzonehf/Flux-Animex-v2-LoRA"
-API_TOKEN = "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"  # noqa: S105
-HEADERS = {"Authorization": f"Bearer {API_TOKEN}"}
 
 # 啟用所有 Intents
 intents = discord.Intents.all()
@@ -27,8 +24,13 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # 非同步查詢 Hugging Face API 的功能
 async def query(payload: dict) -> bytes:
-    async with httpx.AsyncClient() as client:
-        response = await client.post(API_URL, headers=HEADERS, json=payload, timeout=60)
+    async with httpx.AsyncClient(base_url="https://api-inference.huggingface.co/models") as client:
+        response = await client.post(
+            url="/strangerzonehf/Flux-Animex-v2-LoRA",
+            headers={"Authorization": f"Bearer {config.huggingface_api_token}"},
+            json=payload,
+            timeout=60,
+        )
         if response.status_code != 200:
             raise Exception(f"Failed to generate image: {response.status_code} {response.text}")
         return response.content
