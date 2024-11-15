@@ -3,8 +3,8 @@ services:
     image: ghcr.io/mai0313/llm_discord_bot:latest
     build:
       context: .
-      dockerfile: ./docker/Dockerfile
       target: bot
+      dockerfile: ./docker/Dockerfile
     command:
       - python
       - ./main.py
