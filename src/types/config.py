@@ -1,5 +1,8 @@
+import logfire
 from pydantic import Field
 from pydantic_settings import BaseSettings
+
+logfire.configure()
 
 
 class Config(BaseSettings):

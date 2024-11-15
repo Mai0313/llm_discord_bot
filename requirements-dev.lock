@@ -39,6 +39,7 @@ attrs==24.2.0
     # via aiohttp
     # via jsonschema
     # via referencing
+autorootcwd==1.0.1
 babel==2.16.0
     # via jupyterlab-server
     # via mkdocs-material
@@ -366,6 +367,8 @@ pygments==2.18.0
 pymdown-extensions==10.12
     # via mkdocs-material
     # via mkdocstrings
+pyrootutils==1.0.4
+    # via autorootcwd
 pytest==8.3.3
     # via pytest-asyncio
     # via pytest-cov
@@ -378,7 +381,9 @@ python-dateutil==2.9.0.post0
     # via ghp-import
     # via jupyter-client
 python-dotenv==1.0.1
+    # via autorootcwd
     # via pydantic-settings
+    # via pyrootutils
 python-json-logger==2.0.7
     # via jupyter-events
 pywin32==308 ; platform_python_implementation != 'PyPy' and sys_platform == 'win32'
