@@ -8,6 +8,8 @@ services:
     command:
       - python
       - ./main.py
+    env_file:
+      - .env
     volumes:
       - ./logs:/app/logs
     restart: always
