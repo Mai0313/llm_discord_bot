@@ -73,16 +73,3 @@ jobs:
         if: steps.check_tests.outputs.has_tests == 'true'
         run: |
           rye test
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./.github/reports/coverage.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
-        with:
-          file: ./.github/reports/pytest.xml
-          token: ${{ secrets.CODECOV_TOKEN }}

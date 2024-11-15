@@ -36,7 +36,7 @@ jobs:
 
           - name: Build and Push Image (Develop Base)
             target_step: dev
-            tag: ${{ vars.IMAGE }}-dev-base
+            tag: ${{ vars.IMAGE }}-dev
             build_args: --build-arg PYTHON_VERSION=3.10.14
 
           - name: Build and Push Images (Latest / Release)
