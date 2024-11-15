@@ -5,35 +5,24 @@ import datetime
 
 from PIL import Image
 import anyio
-import httpx
 import discord
 import logfire
 from discord.ext import commands
+from src.sdk.llm import LLMServices
 from rich.console import Console
+from src.sdk.image import ImageGenerator
 from src.types.config import Config
 
 logfire.configure()
 
 config = Config()
+llm_services = LLMServices()
+image_services = ImageGenerator()
 console = Console()
 
 # 啟用所有 Intents
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
-
-
-# 非同步查詢 Hugging Face API 的功能
-async def gen_image(prompt: str) -> bytes:
-    async with httpx.AsyncClient(base_url="https://api-inference.huggingface.co/models") as client:
-        response = await client.post(
-            url="/strangerzonehf/Flux-Animex-v2-LoRA",
-            headers={"Authorization": f"Bearer {config.huggingface_api_token}"},
-            json={"inputs": prompt},
-            timeout=60,
-        )
-        if response.status_code != 200:
-            raise Exception(f"Failed to generate image: {response.status_code} {response.text}")
-        return response.content
 
 
 # 進度條
@@ -124,7 +113,7 @@ async def gen(ctx: commands.Context, *, prompt: str) -> None:
 
     # 請求 Hugging Face API 生成圖片
     try:
-        image_bytes = await gen_image(prompt=prompt)
+        image_bytes = await image_services.gen_image(prompt=prompt)
         bytes_io = BytesIO(image_bytes)
         image = Image.open(bytes_io)
 
@@ -140,9 +129,23 @@ async def gen(ctx: commands.Context, *, prompt: str) -> None:
         await msg.edit(content=f"{ctx.author.mention} 圖片生成失敗\n錯誤: {e!s}")
 
 
+@bot.command()
+async def xai(ctx: commands.Context, *, prompt: str) -> None:
+    response = llm_services.get_xai_reply(prompt=prompt)
+    await ctx.send(f"{response.choices[0].message}")
+
+
+@bot.command()
+async def oai(ctx: commands.Context, *, prompt: str) -> None:
+    response = llm_services.get_oai_reply(prompt=prompt)
+    await ctx.send(f"{response.choices[0].message}")
+
+
+@bot.command()
+async def gai(ctx: commands.Context, *, prompt: str) -> None:
+    response = llm_services.get_gai_reply(prompt=prompt)
+    await ctx.send(f"{response.choices[0].message}")
+
+
 if __name__ == "__main__":
-    # 啟動機器人 (記得替換為你的 Discord Bot Token)
-    bot.run(
-        token="MTEzNDkwNDk5NjE3ODE4MjIyNQ.GELWUx.9MJ4mY4OSo9Ty9U0WV9mwVypWIvTuTAIVyp-bs",  # noqa: S106
-        log_handler=logfire.LogfireLoggingHandler(),
-    )
+    bot.run(token=config.discord_bot_token, log_handler=logfire.LogfireLoggingHandler())

@@ -33,8 +33,16 @@ class Config(BaseSettings):
     googleai_api_key: str = Field(
         ...,
         description="The api key from googleai for calling models.",
-        examples=["MTEzNDkwNDk5..."],
+        examples=["AIz..."],
         alias="GOOGLEAI_API_KEY",
+        frozen=False,
+        deprecated=False,
+    )
+    discord_bot_token: str = Field(
+        ...,
+        description="The token from discord for calling models.",
+        examples=["MTEz-..."],
+        alias="DISCORD_BOT_TOKEN",
         frozen=False,
         deprecated=False,
     )
