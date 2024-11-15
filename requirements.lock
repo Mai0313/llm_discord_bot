@@ -24,6 +24,7 @@ async-timeout==5.0.1 ; python_full_version < '3.11'
     # via aiohttp
 attrs==24.2.0
     # via aiohttp
+autorootcwd==1.0.1
 certifi==2024.8.30
     # via httpcore
     # via httpx
@@ -110,8 +111,12 @@ pydantic-core==2.23.4
 pydantic-settings==2.6.1
 pygments==2.18.0
     # via rich
+pyrootutils==1.0.4
+    # via autorootcwd
 python-dotenv==1.0.1
+    # via autorootcwd
     # via pydantic-settings
+    # via pyrootutils
 requests==2.32.3
     # via opentelemetry-exporter-otlp-proto-http
 rich==13.9.4
