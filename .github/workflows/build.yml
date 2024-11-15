@@ -1,0 +1,92 @@
+name: Build Executable File
+
+on:
+  push:
+    tags:
+      - v*
+
+permissions: write-all
+
+jobs:
+  build_package:
+    name: Build Executable File
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-latest
+
+    steps:
+      - name: Disable SSL Verify
+        run: git config --global http.sslVerify false
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get the version
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: metadata
+        uses: battila7/get-version-action@v2
+
+      - name: Setup Rye
+        uses: mai0313/setup-rye@master
+        with:
+          version: 'latest' # Optional, default is latest
+          toolchain_version: '3.10' # Optional, default is 3.10
+          python_version: '3.10' # Optional, default is 3.10
+          use-uv: 'true' # Optional, default is true
+          pypi_source: 'https://pypi.org/simple' # Optional
+          # http_proxy: ${{ secrets.HTTP_PROXY }} # Optional
+          # https_proxy: ${{ secrets.HTTPS_PROXY }} # Optional
+
+      - name: Install dependencies
+        run: |
+          rye sync
+
+      - name: Packaging to Executable file
+        run: |
+          rye install pyinstaller
+          pyinstaller -F main.py --onefile -n ${{ github.event.repository.name }}
+
+      - name: Move and Rename
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "./dist" -ErrorAction SilentlyContinue
+          Copy-Item -Path "./dist/*" -Destination "./" -Recurse -Force
+          Remove-Item -Recurse -Force build, dist, .venv, .cache, .git -ErrorAction SilentlyContinue
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          path: ./*
+          name: ${{ github.event.repository.name }}_${{ steps.metadata.outputs.version }}
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 6
+          overwrite: true
+
+      - name: List files
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path .
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          name: ${{ github.event.repository.name }}_${{ steps.metadata.outputs.version }}
+          path: ${{ github.event.repository.name }}_${{ steps.metadata.outputs.version }}
+
+      - name: Check Files
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "${{ github.event.repository.name }}_${{ steps.metadata.outputs.version }}" -DestinationPath "${{ github.event.repository.name }}_${{ steps.metadata.outputs.version }}.zip" -Force
+          ls -Force
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            ${{ github.event.repository.name }}_${{ steps.metadata.outputs.version }}.zip

@@ -1,0 +1,52 @@
+name: Pre-commit auto-update
+
+on:
+  # every day at midnight
+  schedule:
+    - cron: "0 0 * * *"
+  # manually trigger a workflow_dispatch event
+  workflow_dispatch:
+
+
+permissions: write-all
+
+jobs:
+  auto-update:
+    runs-on: ubuntu-latest
+    # container: catthehacker/ubuntu:act-20.04  # Uncomment it if you use it on Gitea
+
+    steps:
+      - name: Disable SSL Verify
+        run: git config --global http.sslVerify false
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+          submodules: 'recursive'
+
+      - name: Update Pre-Commit
+        uses: browniebroke/pre-commit-autoupdate-action@main
+
+      - name: Commit any changes
+        run: |
+          git add -A
+          git commit -m "Commit any changes before switching branches" || echo "No changes to commit"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        id: pre-commit-autoupdate
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: update/pre-commit-hooks
+          title: Update pre-commit hooks
+          commit-message: "chore: update pre-commit hooks"
+          body: Update versions of pre-commit hooks to latest version.
+
+      - name: Auto Merge Pull Request
+        if: steps.pre-commit-autoupdate.outputs.pull-request-number
+        run: |
+          gh pr merge --auto --merge update/pre-commit-hooks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,110 @@
+default_language_version:
+  python: python3
+
+default_install_hook_types:
+  - pre-commit
+  - pre-push
+
+default_stages:
+  - pre-commit
+  - pre-push
+
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.7.3
+    hooks:
+      - id: ruff
+        types_or: [ python, pyi, jupyter ]
+      - id: ruff-format
+        types_or: [ python, pyi, jupyter ]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # list of supported hooks: https://pre-commit.com/hooks.html
+      - id: check-added-large-files
+        exclude: poetry.lock
+      - id: check-ast
+      - id: check-yaml
+        args:
+          - --allow-multiple-documents
+      - id: check-toml
+      - id: check-json
+        exclude: .vscode/launch.json
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: destroyed-symlinks
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      # - id: no-commit-to-branch
+      - id: trailing-whitespace
+      - id: fix-byte-order-marker
+        exclude: docs/CNAME
+      - id: mixed-line-ending
+        args:
+          - --fix=lf
+      - id: check-docstring-first
+      - id: debug-statements
+      - id: check-symlinks
+
+  # md formatting
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.18
+    hooks:
+      - id: mdformat
+        args:
+          - --number
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-tables
+          - mdformat_frontmatter
+
+  # jupyter notebook cell output clearing
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.8.0
+    hooks:
+      - id: nbstripout
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        additional_dependencies:
+          - tomli
+
+  # - repo: local
+  #   hooks:
+  #     - id: code2flow
+  #       name: Code2Flow
+  #       language: system
+  #       entry: bash -c 'if command -v code2flow >/dev/null 2>&1; then code2flow **/**/*.py -o ./.github/code2flow/flow.png; else echo "code2flow not installed, skipping"; fi'
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - "pydantic>=2.8.2"
+          - "Types-PyYAML"
+          - "Types-requests"
+          - "Types-urllib3"
+          - "Types-attrs"
+
+  # - repo: https://github.com/RobertCraigie/pyright-python
+  #   rev: v1.1.374
+  #   hooks:
+  #   - id: pyright
+
+  # # Pytest
+  # - repo: local
+  #   hooks:
+  #     - id: pytest
+  #       name: Run pytest
+  #       entry: bash -c 'if command -v pytest >/dev/null 2>&1; then pytest -vv; else echo "pytest not installed, skipping tests"; fi'
+  #       language: system
+  #       types:
+  #         - python
+  #       pass_filenames: false
+  #       always_run: true

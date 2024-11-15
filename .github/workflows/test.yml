@@ -1,0 +1,88 @@
+name: Tests
+
+on:
+  pull_request:
+    branches:
+      - master
+      - release/*
+    paths-ignore:
+      - "**/*.md"
+
+jobs:
+  run_tests:
+    if: ${{ !(startsWith(github.head_ref, 'chore/') || startsWith(github.head_ref, 'ci/') || startsWith(github.head_ref, 'docs/')) }}
+    runs-on: ubuntu-latest
+    # container: catthehacker/ubuntu:act-20.04  # Uncomment it if you use it on Gitea
+
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        os:
+          - ubuntu-latest
+        python-version:
+          - "3.9"
+          - "3.10"
+          - "3.11"
+          - "3.12"
+
+    timeout-minutes: 20
+
+    steps:
+      - name: Disable SSL Verify
+        run: git config --global http.sslVerify false
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+          submodules: 'recursive'
+
+      - name: Setup Rye
+        uses: mai0313/setup-rye@master
+        with:
+          version: 'latest' # Optional, default is latest
+          toolchain_version: ${{ matrix.python-version }} # Optional, default is 3.10
+          python_version: ${{ matrix.python-version }} # Optional, default is 3.10
+          use-uv: 'true' # Optional, default is true
+          pypi_source: 'https://pypi.org/simple' # Optional
+          # http_proxy: ${{ secrets.HTTP_PROXY }} # Optional
+          # https_proxy: ${{ secrets.HTTPS_PROXY }} # Optional
+
+      - name: Install dependencies
+        run: |
+          rye sync
+
+      - name: List dependencies
+        run: |
+          rye list
+
+      - name: Check for tests
+        id: check_tests
+        run: |
+          if [ -f tests/test_*.py ] || [ -d tests ]; then
+              echo "Tests exist, proceeding to run them."
+              echo "has_tests=true" >> $GITHUB_OUTPUT
+          else
+              echo "No tests to run."
+              echo "has_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run pytest
+        if: steps.check_tests.outputs.has_tests == 'true'
+        run: |
+          rye test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./.github/reports/coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          file: ./.github/reports/pytest.xml
+          token: ${{ secrets.CODECOV_TOKEN }}

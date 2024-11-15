@@ -1,0 +1,26 @@
+name: Pull Request Labeler
+
+on:
+  pull_request:
+
+jobs:
+  labeler:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Disable SSL Verify
+        run: git config --global http.sslVerify false
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+          submodules: 'recursive'
+
+      - name: Labeler
+        id: labeler
+        uses: actions/labeler@v5
+        with:
+          sync-labels: true
+          configuration-path: .github/labeler.yml

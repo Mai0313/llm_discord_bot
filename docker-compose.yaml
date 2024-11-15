@@ -1,0 +1,25 @@
+services:
+  redis:
+    image: redis:7.2.5-alpine
+    ports:
+      - "6379:6379"
+    command:
+      - redis-server
+    volumes:
+      - ./data/redis:/var/lib/redis
+    restart: always
+    pull_policy: if_not_present
+
+  postgresql:
+    image: postgres:16.3-alpine
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgresql:/var/lib/postgresql/data
+    restart: always
+    pull_policy: if_not_present
