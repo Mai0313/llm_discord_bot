@@ -18,8 +18,6 @@ def get_xai_response(api_key: str, question: str) -> str:
 
 
 if __name__ == "__main__":
-    api_key = (
-        "xai-DXMhKNnVX1wEPdxy1oziThWPMljZPOJlkJUmYzAlNqq265Yjzgq2ValOBQ6ooS1dLZQcp6hkysw1WaDC"
-    )
+    api_key = ...
     question = "What is the meaning of life, the universe, and everything?"
     get_xai_response(api_key=api_key, question=question)
