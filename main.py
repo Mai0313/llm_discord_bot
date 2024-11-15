@@ -1,5 +1,7 @@
 from io import BytesIO
+import os
 import asyncio
+import datetime
 
 from PIL import Image
 import discord
@@ -18,6 +20,8 @@ API_TOKEN = "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"  # noqa: S105
 headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
 intents = discord.Intents.default()
+intents.messages = True  # 啟用訊息接收
+intents.message_content = True  # 啟用訊息內容接收
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 
@@ -34,15 +38,56 @@ async def update_progress(message: discord.Message, step: int, total_steps: int)
     await message.edit(content=f"圖片正在生成中...\n{progress_bar}")
 
 
+def log_message_to_file(message: discord.Message, save_dir: str) -> None:
+    """將訊息記錄到檔案，包含附件下載"""
+    # 確保資料夾存在
+    os.makedirs(save_dir, exist_ok=True)
+
+    # 建立日誌檔案名稱
+    log_file = os.path.join(save_dir, "log.txt")
+
+    # 記錄訊息內容
+    with open(log_file, "a", encoding="utf-8") as f:
+        message_info = f"{message.author} ({message.author.id}) at {message.created_at}:\n"
+        message_content = f"{message.content}\n"
+        f.write(message_info)
+        f.write(message_content)
+        f.write("-" * 40 + "\n")
+        console.print(message_info)
+        console.print(message_content)
+
+    # 處理附件
+    for attachment in message.attachments:
+        attachment_path = os.path.join(save_dir, attachment.filename)
+        asyncio.run_coroutine_threadsafe(attachment.save(attachment_path), bot.loop)
+
+
 @bot.event
 async def on_ready() -> None:
     console.print(f"Logged in as {bot.user}")
-    # 取得應用程式的 client_id
+    # 取得應用程式的 client_id 並生成邀請連結
     app_info = await bot.application_info()
     invite_url = (
         f"https://discord.com/oauth2/authorize?client_id={app_info.id}&permissions=8&scope=bot"
     )
     console.print(f"邀請連結: {invite_url}")
+
+
+@bot.event
+async def on_message(message: discord.Message) -> None:
+    # 忽略機器人自己的訊息
+    if message.author.bot:
+        return
+
+    # 生成保存路徑（依據日期）
+    today = datetime.date.today().isoformat()
+    save_dir = os.path.join("logs", today, str(message.channel.id))
+
+    # 記錄訊息
+    log_message_to_file(message, save_dir)
+
+    # 繼續處理其他命令
+    await bot.process_commands(message)
 
 
 @bot.command()
