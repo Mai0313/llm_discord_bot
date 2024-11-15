@@ -110,8 +110,9 @@ async def on_message(message: discord.Message) -> None:
 
 @bot.command()
 async def gen(ctx: commands.Context, *, prompt: str) -> None:
+    """生成圖片並標記發送訊息的人。"""
     # 回應使用者，開始生成圖片
-    msg = await ctx.send("圖片正在生成中...\n進度: [----------] 0%")
+    msg = await ctx.send(f"{ctx.author.mention} 圖片正在生成中...\n進度: [----------] 0%")
     total_steps = 5  # 模擬的進度階段數
 
     # 模擬進度條更新
@@ -128,10 +129,12 @@ async def gen(ctx: commands.Context, *, prompt: str) -> None:
         with BytesIO() as image_binary:
             image.save(image_binary, format="PNG")
             image_binary.seek(0)
-            await msg.edit(content=f"圖片生成完成\nPrompt: `{prompt}`")
+
+            # 編輯完成訊息並發送圖片
+            await msg.edit(content=f"{ctx.author.mention} 圖片生成完成\nPrompt: `{prompt}`")
             await ctx.send(file=discord.File(fp=image_binary, filename="generated_image.png"))
     except Exception as e:
-        await msg.edit(content=f"圖片生成失敗\n錯誤: {e!s}")
+        await msg.edit(content=f"{ctx.author.mention} 圖片生成失敗\n錯誤: {e!s}")
 
 
 if __name__ == "__main__":
