@@ -131,20 +131,78 @@ async def gen(ctx: commands.Context, *, prompt: str) -> None:
 
 @bot.command()
 async def xai(ctx: commands.Context, *, prompt: str) -> None:
-    response = llm_services.get_xai_reply(prompt=prompt)
-    await ctx.send(f"{response.choices[0].message}")
+    response = await llm_services.get_xai_reply(prompt=prompt)
+    await ctx.send(f"{response.choices[0].message.content}")
 
 
 @bot.command()
 async def oai(ctx: commands.Context, *, prompt: str) -> None:
-    response = llm_services.get_oai_reply(prompt=prompt)
-    await ctx.send(f"{response.choices[0].message}")
+    response = await llm_services.get_oai_reply(prompt=prompt)
+    await ctx.send(f"{response.choices[0].message.content}")
 
 
 @bot.command()
 async def gai(ctx: commands.Context, *, prompt: str) -> None:
-    response = llm_services.get_gai_reply(prompt=prompt)
-    await ctx.send(f"{response.choices[0].message}")
+    response = await llm_services.get_gai_reply(prompt=prompt)
+    await ctx.send(f"{response.choices[0].message.content}")
+
+
+@bot.command()
+async def xais(ctx: commands.Context, *, prompt: str) -> None:
+    msg = await ctx.send("生成中...")  # 初始化訊息
+    accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容，初始包括用戶標記
+
+    async for res in llm_services.get_xai_reply_stream(prompt=prompt):
+        # 檢查 res 是否非空並累加
+        if hasattr(res, "choices") and len(res.choices) > 0:
+            delta_content = res.choices[0].delta.content.strip()
+            if delta_content:  # 確保生成內容非空
+                accumulated_text += delta_content
+                await msg.edit(content=accumulated_text)  # 更新訊息
+
+    # 確保最終訊息完整
+    if accumulated_text.strip():  # 再次確認非空
+        await msg.edit(content=accumulated_text)
+    else:
+        await msg.edit(content=f"{ctx.author.mention} 無有效回應，請嘗試其他提示。")
+
+
+@bot.command()
+async def oais(ctx: commands.Context, *, prompt: str) -> None:
+    msg = await ctx.send("生成中...")  # 初始化訊息
+    accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容
+
+    async for res in llm_services.get_oai_reply_stream(prompt=prompt):
+        if hasattr(res, "choices") and len(res.choices) > 0:
+            delta_content = res.choices[0].delta.content.strip()
+            if delta_content:  # 確保生成內容非空
+                accumulated_text += delta_content
+                await msg.edit(content=accumulated_text)  # 更新訊息
+
+    # 確保最終訊息完整
+    if accumulated_text.strip():  # 再次確認非空
+        await msg.edit(content=accumulated_text)
+    else:
+        await msg.edit(content=f"{ctx.author.mention} 無有效回應，請嘗試其他提示。")
+
+
+@bot.command()
+async def gais(ctx: commands.Context, *, prompt: str) -> None:
+    msg = await ctx.send("生成中...")  # 初始化訊息
+    accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容
+
+    async for res in llm_services.get_gai_reply_stream(prompt=prompt):
+        if hasattr(res, "choices") and len(res.choices) > 0:
+            delta_content = res.choices[0].delta.content.strip()
+            if delta_content:  # 確保生成內容非空
+                accumulated_text += delta_content
+                await msg.edit(content=accumulated_text)  # 更新訊息
+
+    # 確保最終訊息完整
+    if accumulated_text.strip():  # 再次確認非空
+        await msg.edit(content=accumulated_text)
+    else:
+        await msg.edit(content=f"{ctx.author.mention} 無有效回應，請嘗試其他提示。")
 
 
 if __name__ == "__main__":
