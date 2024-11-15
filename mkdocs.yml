@@ -1,9 +1,9 @@
-site_name: Template
-site_url: https://mai0313.github.io/template/
+site_name: LLM Discord Bot
+site_url: https://mai0313.github.io/llm_discord_bot/
 site_author: Wei Cheng Lee
 
-repo_name: Mai0313/template
-repo_url: https://github.com/Mai0313/template
+repo_name: Mai0313/llm_discord_bot
+repo_url: https://github.com/Mai0313/llm_discord_bot
 edit_uri: edit/master/docs/
 
 docs_dir: docs
@@ -148,7 +148,7 @@ plugins:
 extra:
   social:
   - icon: fontawesome/brands/github-alt
-    link: https://github.com/Mai0313/template
+    link: https://github.com/Mai0313/llm_discord_bot
 
   alternate:
   - link: /

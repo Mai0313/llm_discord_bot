@@ -2,7 +2,7 @@
 
 ```bash
 # clone project
-git clone https://github.com/Mai0313/template
+git clone https://github.com/Mai0313/llm_discord_bot
 mv template your-repo-name
 
 # change directory
