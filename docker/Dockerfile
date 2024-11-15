@@ -1,5 +1,5 @@
 ARG PYTHON_VERSION=3.10.14
-FROM python:${PYTHON_VERSION} as builder
+FROM python:${PYTHON_VERSION} AS builder
 
 LABEL maintainer="Wei Lee <mai@mai0313.com>" \
     org.label-schema.name="llm_discord_bot" \
@@ -21,18 +21,18 @@ RUN python -m pip install --upgrade pip
 
 ########################################################################################
 
-FROM builder as base
+FROM builder AS base
 WORKDIR /base_env
 COPY ./requirements.lock ./requirements.lock
 RUN pip install -r ./requirements.lock && pip cache purge
 
-FROM builder as dev
+FROM builder AS dev
 WORKDIR /base_env
 COPY ./requirements-dev.lock ./requirements-dev.lock
 RUN pip install -r ./requirements-dev.lock && pip cache purge
 
 ########################################################################################
 
-FROM base as bot
+FROM base AS bot
 WORKDIR /app
 COPY . .
