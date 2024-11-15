@@ -1,6 +1,6 @@
 from io import BytesIO
-import os
 import asyncio
+from pathlib import Path
 import datetime
 
 from PIL import Image
@@ -32,16 +32,21 @@ async def update_progress(message: discord.Message, step: int, total_steps: int)
     await message.edit(content=f"圖片正在生成中...\n{progress_bar}")
 
 
-async def log_message_to_file(message: discord.Message, save_dir: str) -> None:
+async def log_message_to_file(message: discord.Message, save_dir: Path) -> None:
     """將訊息記錄到檔案，包含附件和貼圖下載"""
     # 確保資料夾存在
-    os.makedirs(save_dir, exist_ok=True)
+    save_dir.mkdir(parents=True, exist_ok=True)
 
     # 建立日誌檔案名稱
-    log_file = os.path.join(save_dir, "log.txt")
+    log_file = save_dir / "log.txt"
+
+    # 判斷是私訊還是伺服器頻道
+    if isinstance(message.channel, discord.DMChannel):
+        channel_info = f"DM_{message.author.id}"
+    else:
+        channel_info = f"{message.channel.name} ({message.channel.id})"
 
     # 記錄訊息內容
-    channel_info = f"{message.channel.name} ({message.channel.id})"
     message_info = f"{message.author} ({message.author.id}) at {message.created_at.strftime('%Y-%m-%d %H:%M:%S')} in {channel_info}:\n"
     message_content = f"{message.content}\n"
     log_entry = f"{message_info}{message_content}{'-' * 40}\n"
@@ -54,20 +59,19 @@ async def log_message_to_file(message: discord.Message, save_dir: str) -> None:
         f"{message.author.name}: {message.content}",
         author_id=message.author.id,
         created_time=message.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-        channel_name=message.channel.name,
+        channel_name=getattr(message.channel, "name", "DM"),
         channel_id=message.channel.id,
-        message_content=message.content,
     )
 
     # 處理附件
     for attachment in message.attachments:
-        attachment_path = os.path.join(save_dir, attachment.filename)
+        attachment_path = save_dir / attachment.filename
         await attachment.save(attachment_path)
 
     # 處理貼圖
     if message.stickers:
         for sticker in message.stickers:
-            sticker_path = os.path.join(save_dir, f"sticker_{sticker.id}.png")
+            sticker_path = save_dir / f"sticker_{sticker.id}.png"
             await sticker.save(sticker_path)
 
 
@@ -90,7 +94,15 @@ async def on_message(message: discord.Message) -> None:
 
     # 生成保存路徑（依據日期）
     today = datetime.date.today().isoformat()
-    save_dir = os.path.join("logs", today, f"{message.channel.name}_{message.channel.id}")
+
+    if isinstance(message.channel, discord.DMChannel):
+        # 如果是私訊，使用用戶 ID 作為名稱
+        channel_name = f"DM_{message.author.id}"
+    else:
+        # 如果是伺服器中的頻道，使用頻道名稱
+        channel_name = f"{message.channel.name}_{message.channel.id}"
+
+    save_dir = Path("logs") / today / channel_name
 
     # 記錄訊息
     await log_message_to_file(message, save_dir)
@@ -102,7 +114,6 @@ async def on_message(message: discord.Message) -> None:
 @bot.command()
 async def gen(ctx: commands.Context, *, prompt: str) -> None:
     """生成圖片並標記發送訊息的人。"""
-    # 回應使用者，開始生成圖片
     msg = await ctx.send(f"{ctx.author.mention} 圖片正在生成中...\n進度: [----------] 0%")
     total_steps = 5  # 模擬的進度階段數
 
