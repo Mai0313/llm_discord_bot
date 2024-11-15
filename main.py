@@ -9,7 +9,6 @@ import discord
 import logfire
 from discord.ext import commands
 from src.sdk.llm import LLMServices
-from rich.console import Console
 from src.sdk.image import ImageGenerator
 from src.types.config import Config
 
@@ -18,7 +17,6 @@ logfire.configure()
 config = Config()
 llm_services = LLMServices()
 image_services = ImageGenerator()
-console = Console()
 
 # 啟用所有 Intents
 intents = discord.Intents.all()
@@ -77,13 +75,12 @@ async def log_message_to_file(message: discord.Message, save_dir: Path) -> None:
 
 @bot.event
 async def on_ready() -> None:
-    console.print(f"Logged in as {bot.user}")
-    # 取得應用程式的 client_id 並生成邀請連結
     app_info = await bot.application_info()
     invite_url = (
         f"https://discord.com/oauth2/authorize?client_id={app_info.id}&permissions=8&scope=bot"
     )
-    console.print(f"邀請連結: {invite_url}")
+    logfire.info("Bot Started", bot_name=bot.user.name, bot_id=bot.user.id)
+    logfire.info(f"Invite Link: {invite_url}")
 
 
 @bot.event
