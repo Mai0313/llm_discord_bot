@@ -1,8 +1,7 @@
-from typing import Any, Union, Optional
+from typing import Any, Optional
 from collections.abc import AsyncGenerator
 
 from openai import OpenAI, AsyncOpenAI
-import logfire
 from pydantic import Field
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 
@@ -37,12 +36,7 @@ class LLMServices(Config):
     system_prompt: str = Field(default=SYSTEM_PROMPT)
 
     async def _get_reply(
-        self,
-        prompt: str,
-        image: Optional[str],
-        api_key: str,
-        base_url: str,
-        model: str,
+        self, prompt: str, image: Optional[str], api_key: str, base_url: str, model: str
     ) -> ChatCompletion:
         client = AsyncOpenAI(api_key=api_key, base_url=base_url)
 

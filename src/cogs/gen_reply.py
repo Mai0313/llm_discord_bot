@@ -1,3 +1,4 @@
+from discord import app_commands
 from discord.ext import commands
 
 from src.sdk.llm import LLMServices
@@ -9,7 +10,7 @@ class ReplyGeneratorCogs(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command()
+    @app_commands.command(name="xai", description="Generate text based on the prompt.")
     async def xai(self, ctx: commands.Context, *, prompt: str = "") -> None:
         # 檢查是否有附件
         if ctx.message.attachments:
