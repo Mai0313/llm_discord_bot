@@ -9,7 +9,7 @@ from discord.ext import commands
 from src.types.config import Config
 
 
-class TemplateCogs(commands.Cog):
+class ImageGeneratorCogs(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.config = Config()
@@ -65,4 +65,4 @@ class TemplateCogs(commands.Cog):
 
 # 註冊 Cog
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(TemplateCogs(bot))
+    await bot.add_cog(ImageGeneratorCogs(bot))
