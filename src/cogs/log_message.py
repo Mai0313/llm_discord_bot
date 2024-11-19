@@ -54,7 +54,7 @@ class LogMessageCogs(commands.Cog):
 
         logfire.info(
             f"{message.author.name}: {message.content}",
-            author_id=message.author.id,
+            author=message.author.name,
             created_time=message.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             channel_name=getattr(message.channel, "name", "DM"),
             channel_id=message.channel.id,
