@@ -71,7 +71,7 @@ class LLMServices(Config):
             content.append({"type": "image_url", "image_url": {"url": f"{image}"}})
 
         completion = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": content},
