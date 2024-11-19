@@ -1,12 +1,11 @@
-from typing import Any, Union, Optional
+from typing import Union
 from collections.abc import AsyncGenerator
 
 from openai import OpenAI, AsyncOpenAI
 import logfire
 from pydantic import Field
-from openai.types.chat import ChatCompletion, ChatCompletionChunk
-
 from src.types.config import Config
+from openai.types.chat import ChatCompletion, ChatCompletionChunk
 
 SYSTEM_PROMPT = "你是一個有趣的且不拘謹的人, 回答有趣且幽默, 擅長透過幽默風趣的方式解決問題"
 # SYSTEM_PROMPT = """
@@ -45,38 +44,28 @@ class LLMServices(Config):
         logfire.info("Available models", available_models=", ".join(model_list))
         return model_list
 
-    async def get_xai_reply(self, prompt: str, image: Optional[str] = None) -> ChatCompletion:
+    async def get_xai_reply(self, prompt: str) -> ChatCompletion:
         client = AsyncOpenAI(api_key=self.xai_api_key, base_url="https://api.x.ai/v1")
         await self._get_models(client=client)
 
-        content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image:
-            content.append({"type": "image_url", "image_url": {"url": f"{image}"}})
-
         completion = client.chat.completions.create(
             model="grok-beta",
             messages=[
                 {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": content},
+                {"role": "user", "content": prompt},
             ],
         )
         return await completion
 
-    async def get_xai_reply_stream(
-        self, prompt: str, image: Optional[str] = None
-    ) -> AsyncGenerator[ChatCompletionChunk, None]:
+    async def get_xai_reply_stream(self, prompt: str) -> AsyncGenerator[ChatCompletionChunk, None]:
         client = OpenAI(api_key=self.xai_api_key, base_url="https://api.x.ai/v1")
         await self._get_models(client=client)
 
-        content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image:
-            content.append({"type": "image_url", "image_url": {"url": f"{image}"}})
-
         completion = client.chat.completions.create(
             model="grok-beta",
             messages=[
                 {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": content},
+                {"role": "user", "content": prompt},
             ],
             stream=True,
         )
@@ -84,38 +73,28 @@ class LLMServices(Config):
             if len(chunk.choices) > 0:
                 yield chunk
 
-    async def get_oai_reply(self, prompt: str, image: Optional[str] = None) -> ChatCompletion:
+    async def get_oai_reply(self, prompt: str) -> ChatCompletion:
         client = AsyncOpenAI(api_key=self.openai_api_key, base_url="https://api.openai.com/v1")
         await self._get_models(client=client)
-
-        content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image:
-            content.append({"type": "image_url", "image_url": {"url": f"{image}"}})
 
         completion = client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": content},
+                {"role": "user", "content": prompt},
             ],
         )
         return await completion
 
-    async def get_oai_reply_stream(
-        self, prompt: str, image: Optional[str] = None
-    ) -> AsyncGenerator[ChatCompletionChunk, None]:
+    async def get_oai_reply_stream(self, prompt: str) -> AsyncGenerator[ChatCompletionChunk, None]:
         client = OpenAI(api_key=self.openai_api_key, base_url="https://api.openai.com/v1")
         await self._get_models(client=client)
-
-        content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image:
-            content.append({"type": "image_url", "image_url": {"url": f"{image}"}})
 
         completion = client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": content},
+                {"role": "user", "content": prompt},
             ],
             stream=True,
         )
@@ -123,46 +102,36 @@ class LLMServices(Config):
             if len(chunk.choices) > 0:
                 yield chunk
 
-    async def get_gai_reply(self, prompt: str, image: Optional[str] = None) -> ChatCompletion:
+    async def get_gai_reply(self, prompt: str) -> ChatCompletion:
         client = AsyncOpenAI(
             api_key=self.googleai_api_key,
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
         )
         await self._get_models(client=client)
 
-        content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image:
-            content.append({"type": "image_url", "image_url": {"url": f"{image}"}})
-
         completion = client.chat.completions.create(
             model="gemini-1.5-pro",
             n=1,
             messages=[
                 {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": content},
+                {"role": "user", "content": prompt},
             ],
         )
         return await completion
 
-    async def get_gai_reply_stream(
-        self, prompt: str, image: Optional[str] = None
-    ) -> AsyncGenerator[ChatCompletionChunk, None]:
+    async def get_gai_reply_stream(self, prompt: str) -> AsyncGenerator[ChatCompletionChunk, None]:
         client = OpenAI(
             api_key=self.googleai_api_key,
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
         )
         await self._get_models(client=client)
 
-        content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image:
-            content.append({"type": "image_url", "image_url": {"url": f"{image}"}})
-
         completion = client.chat.completions.create(
             model="gemini-1.5-pro",
             n=1,
             messages=[
                 {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": content},
+                {"role": "user", "content": prompt},
             ],
             stream=True,
         )
