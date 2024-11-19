@@ -1,22 +1,16 @@
-from io import BytesIO
 import asyncio
 from pathlib import Path
-import datetime
 
-from PIL import Image
-import anyio
 import discord
 import logfire
 from discord.ext import commands
 from src.sdk.llm import LLMServices
-from src.sdk.image import ImageGenerator
 from src.types.config import Config
 
 logfire.configure()
 
 config = Config()
 llm_services = LLMServices()
-image_services = ImageGenerator()
 
 # 啟用所有 Intents
 intents = discord.Intents.all()
@@ -31,147 +25,13 @@ async def on_ready() -> None:
     )
     logfire.info("Bot Started", bot_name=bot.user.name, bot_id=bot.user.id)
     logfire.info(f"Invite Link: {invite_url}")
-
-
-@bot.event
-async def on_message(message: discord.Message) -> None:
-    # 忽略機器人自己的訊息
-    if message.author.bot:
-        return
-
-    # 記錄訊息
-    """將訊息記錄到檔案，包含附件和貼圖下載"""
-    # 生成保存路徑（依據日期）
-    today = datetime.date.today().isoformat()
-
-    if isinstance(message.channel, discord.DMChannel):
-        # 如果是私訊，使用用戶 ID 作為名稱
-        channel_name = f"DM_{message.author.id}"
-    else:
-        # 如果是伺服器中的頻道，使用頻道名稱
-        channel_name = f"{message.channel.name}_{message.channel.id}"
-
-    save_dir = Path("logs") / today / channel_name
-
-    # 確保資料夾存在
-    save_dir.mkdir(parents=True, exist_ok=True)
-
-    # 建立日誌檔案名稱
-    log_file = save_dir / "log.txt"
-
-    # 判斷是私訊還是伺服器頻道
-    if isinstance(message.channel, discord.DMChannel):
-        channel_info = f"DM_{message.author.id}"
-    else:
-        channel_info = f"{message.channel.name} ({message.channel.id})"
-
-    # 記錄訊息內容
-    message_info = f"{message.author} ({message.author.id}) at {message.created_at.strftime('%Y-%m-%d %H:%M:%S')} in {channel_info}:\n"
-    message_content = f"{message.content}\n"
-    log_entry = f"{message_info}{message_content}{'-' * 40}\n"
-
-    # 使用 anyio 非同步寫入
-    async with await anyio.open_file(log_file, mode="a", encoding="utf-8") as f:
-        await f.write(log_entry)
-
-    logfire.info(
-        f"{message.author.name}: {message.content}",
-        author_id=message.author.id,
-        created_time=message.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-        channel_name=getattr(message.channel, "name", "DM"),
-        channel_id=message.channel.id,
-    )
-
-    # 處理附件
-    for attachment in message.attachments:
-        attachment_path = save_dir / attachment.filename
-        await attachment.save(attachment_path)
-
-    # 處理貼圖
-    if message.stickers:
-        for sticker in message.stickers:
-            sticker_path = save_dir / f"sticker_{sticker.id}.png"
-            await sticker.save(sticker_path)
-
-    # 繼續處理其他命令
-    await bot.process_commands(message)
-
-
-@bot.command()
-async def gen(ctx: commands.Context, *, prompt: str) -> None:
-    """生成圖片並標記發送訊息的人。"""
-    msg = await ctx.send(f"{ctx.author.mention} 圖片正在生成中...\n進度: [----------] 0%")
-    total_steps = 5  # 模擬的進度階段數
-
-    # 模擬進度條更新
-    for step in range(1, total_steps + 1):
-        progress = int((step / total_steps) * 100)
-        progress_bar = f"進度: [{'█' * (progress // 10)}{'-' * (10 - progress // 10)}] {progress}%"
-        await msg.edit(content=f"圖片正在生成中...\n{progress_bar}")
-        await asyncio.sleep(5)  # 每5秒更新一次
-
-    # 請求 Hugging Face API 生成圖片
-    try:
-        image_bytes = await image_services.gen_image(prompt=prompt)
-        bytes_io = BytesIO(image_bytes)
-        image = Image.open(bytes_io)
-
-        # 將圖片存為暫時檔案並發送
-        with BytesIO() as image_binary:
-            image.save(image_binary, format="PNG")
-            image_binary.seek(0)
-
-            # 編輯完成訊息並發送圖片
-            await msg.edit(content=f"{ctx.author.mention} 圖片生成完成\nPrompt: `{prompt}`")
-            await ctx.send(file=discord.File(fp=image_binary, filename="generated_image.png"))
-    except Exception as e:
-        await msg.edit(content=f"{ctx.author.mention} 圖片生成失敗\n錯誤: {e!s}")
-
-
-@bot.command()
-async def xai(ctx: commands.Context, *, prompt: str = "") -> None:
-    # 檢查是否有附件
-    if ctx.message.attachments:
-        # 取得附件的 URL（假設只有一個圖片）
-        image_url = ctx.message.attachments[0].url
-        # await ctx.send(f"收到圖片: {image_url}")
-        # 在這裡你可以進一步處理圖片 URL，例如傳遞給 llm_services 或其他服務
-        response = await llm_services.get_xai_reply(prompt=prompt, image=image_url)
-    else:
-        # 如果沒有圖片附件，僅處理文字提示
-        response = await llm_services.get_xai_reply(prompt=prompt)
-
-    # 回應處理結果
-    await ctx.send(f"{ctx.author.mention} {response.choices[0].message.content}")
-
-
-@bot.command()
-async def oai(ctx: commands.Context, *, prompt: str) -> None:
-    if ctx.message.attachments:
-        # 取得附件的 URL（假設只有一個圖片）
-        image_url = ctx.message.attachments[0].url
-        # await ctx.send(f"收到圖片，URL 為: {image_url}")
-        # 在這裡你可以進一步處理圖片 URL，例如傳遞給 llm_services 或其他服務
-        response = await llm_services.get_oai_reply(prompt=prompt, image=image_url)
-    else:
-        # 如果沒有圖片附件，僅處理文字提示
-        response = await llm_services.get_oai_reply(prompt=prompt)
-
-    await ctx.send(f"{ctx.author.mention} {response.choices[0].message.content}")
-
-
-@bot.command()
-async def gai(ctx: commands.Context, *, prompt: str) -> None:
-    if ctx.message.attachments:
-        # 取得附件的 URL（假設只有一個圖片）
-        image_url = ctx.message.attachments[0].url
-        # await ctx.send(f"收到圖片，URL 為: {image_url}")
-        # 在這裡你可以進一步處理圖片 URL，例如傳遞給 llm_services 或其他服務
-        response = await llm_services.get_gai_reply(prompt=prompt, image=image_url)
-    else:
-        # 如果沒有圖片附件，僅處理文字提示
-        response = await llm_services.get_gai_reply(prompt=prompt)
-    await ctx.send(f"{ctx.author.mention} {response.choices[0].message.content}")
+    logfire.info("Loading Cogs...")
+    cog_path = Path("./src/cogs")
+    cog_files = [f.stem for f in cog_path.glob("*.py") if not f.stem.startswith("__")]
+    for cog_file in cog_files:
+        filename = f"src.cogs.{cog_file}"
+        logfire.info("Loading Cogs", filename=filename)
+        await bot.load_extension(filename)
 
 
 @bot.command()
