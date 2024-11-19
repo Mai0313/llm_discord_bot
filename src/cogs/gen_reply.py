@@ -10,7 +10,7 @@ class ReplyGeneratorCogs(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(name="xai", description="使用 xAI 生成回應")
+    @commands.command()
     async def xai(self, ctx: commands.Context, *, prompt: str = "") -> None:
         # 檢查是否有附件
         if ctx.message.attachments:
