@@ -150,7 +150,7 @@ async def oai(ctx: commands.Context, *, prompt: str) -> None:
     if ctx.message.attachments:
         # 取得附件的 URL（假設只有一個圖片）
         image_url = ctx.message.attachments[0].url
-        await ctx.send(f"收到圖片，URL 為: {image_url}")
+        # await ctx.send(f"收到圖片，URL 為: {image_url}")
         # 在這裡你可以進一步處理圖片 URL，例如傳遞給 llm_services 或其他服務
         response = await llm_services.get_oai_reply(prompt=prompt, image=image_url)
     else:
@@ -165,7 +165,7 @@ async def gai(ctx: commands.Context, *, prompt: str) -> None:
     if ctx.message.attachments:
         # 取得附件的 URL（假設只有一個圖片）
         image_url = ctx.message.attachments[0].url
-        await ctx.send(f"收到圖片，URL 為: {image_url}")
+        # await ctx.send(f"收到圖片，URL 為: {image_url}")
         # 在這裡你可以進一步處理圖片 URL，例如傳遞給 llm_services 或其他服務
         response = await llm_services.get_gai_reply(prompt=prompt, image=image_url)
     else:
