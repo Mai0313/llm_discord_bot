@@ -9,7 +9,7 @@ class LLMReplyCogs(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="xai")
+    @commands.command()
     async def xai(self, ctx: commands.Context, *, prompt: str = "") -> None:
         # 檢查是否有附件
         if ctx.message.attachments:
@@ -25,7 +25,7 @@ class LLMReplyCogs(commands.Cog):
         # 回應處理結果
         await ctx.send(f"{ctx.author.mention} {response.choices[0].message.content}")
 
-    @commands.command(name="oai")
+    @commands.command()
     async def oai(self, ctx: commands.Context, *, prompt: str) -> None:
         if ctx.message.attachments:
             # 取得附件的 URL（假設只有一個圖片）
@@ -39,7 +39,7 @@ class LLMReplyCogs(commands.Cog):
 
         await ctx.send(f"{ctx.author.mention} {response.choices[0].message.content}")
 
-    @commands.command(name="gai")
+    @commands.command()
     async def gai(self, ctx: commands.Context, *, prompt: str) -> None:
         if ctx.message.attachments:
             # 取得附件的 URL（假設只有一個圖片）
