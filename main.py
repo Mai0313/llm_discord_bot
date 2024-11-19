@@ -58,8 +58,8 @@ class DiscordBot(commands.Bot):
             system=f"{platform.system()} {platform.release()} ({os.name})",
         )
         await self.load_cogs()
-        self.status_task.start()
         await self.tree.sync()
+        self.status_task.start()
 
     async def on_message(self, message: discord.Message) -> None:
         """The code in this event is executed every time someone sends a message, with or without the prefix
