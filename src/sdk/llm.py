@@ -36,75 +36,60 @@ SYSTEM_PROMPT = "你是一個有趣的且不拘謹的人, 回答有趣且幽默,
 class LLMServices(Config):
     system_prompt: str = Field(default=SYSTEM_PROMPT)
 
-    async def _get_models(self, client: Union[OpenAI, AsyncOpenAI]) -> list[str]:
-        if isinstance(client, AsyncOpenAI):
-            models = await client.models.list()
-        else:
-            models = client.models.list()
-        model_list = [model.id for model in models.data]
-        logfire.info("Available models", available_models=", ".join(model_list))
-        return model_list
+    async def _get_reply(
+        self,
+        prompt: str,
+        image: Optional[str],
+        api_key: str,
+        base_url: str,
+        model: str,
+    ) -> ChatCompletion:
+        client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+
+        content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
+        if image:
+            content.append({"type": "image_url", "image_url": {"url": f"{image}"}})
+
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": content},
+            ],
+        )
+        return await completion
 
     async def get_xai_reply(self, prompt: str, image: Optional[str] = None) -> ChatCompletion:
-        client = AsyncOpenAI(api_key=self.xai_api_key, base_url="https://api.x.ai/v1")
-        await self._get_models(client=client)
-
-        content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image:
-            content.append({"type": "image_url", "image_url": {"url": f"{image}"}})
-
-        completion = client.chat.completions.create(
+        return await self._get_reply(
+            prompt=prompt,
+            image=image,
+            api_key=self.xai_api_key,
+            base_url="https://api.x.ai/v1",
             model="grok-beta",
-            messages=[
-                {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": content},
-            ],
         )
-        return await completion
 
     async def get_oai_reply(self, prompt: str, image: Optional[str] = None) -> ChatCompletion:
-        client = AsyncOpenAI(api_key=self.openai_api_key, base_url="https://api.openai.com/v1")
-        await self._get_models(client=client)
-
-        content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image:
-            content.append({"type": "image_url", "image_url": {"url": f"{image}"}})
-
-        completion = client.chat.completions.create(
+        return await self._get_reply(
+            prompt=prompt,
+            image=image,
+            api_key=self.openai_api_key,
+            base_url="https://api.openai.com/v1",
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": content},
-            ],
         )
-        return await completion
 
     async def get_gai_reply(self, prompt: str, image: Optional[str] = None) -> ChatCompletion:
-        client = AsyncOpenAI(
+        return await self._get_reply(
+            prompt=prompt,
+            image=image,
             api_key=self.googleai_api_key,
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-        )
-        await self._get_models(client=client)
-
-        content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image:
-            content.append({"type": "image_url", "image_url": {"url": f"{image}"}})
-
-        completion = client.chat.completions.create(
             model="gemini-1.5-pro",
-            n=1,
-            messages=[
-                {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": content},
-            ],
         )
-        return await completion
 
     async def get_xai_reply_stream(
         self, prompt: str, image: Optional[str] = None
     ) -> AsyncGenerator[ChatCompletionChunk, None]:
         client = OpenAI(api_key=self.xai_api_key, base_url="https://api.x.ai/v1")
-        await self._get_models(client=client)
 
         content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
         if image:
@@ -126,7 +111,6 @@ class LLMServices(Config):
         self, prompt: str, image: Optional[str] = None
     ) -> AsyncGenerator[ChatCompletionChunk, None]:
         client = OpenAI(api_key=self.openai_api_key, base_url="https://api.openai.com/v1")
-        await self._get_models(client=client)
 
         content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
         if image:
@@ -151,7 +135,6 @@ class LLMServices(Config):
             api_key=self.googleai_api_key,
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
         )
-        await self._get_models(client=client)
 
         content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
         if image:
