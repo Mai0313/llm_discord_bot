@@ -40,7 +40,7 @@ class DiscordBot(commands.Bot):
     @tasks.loop(minutes=1.0)
     async def status_task(self) -> None:
         """Setup the game status task of the bot."""
-        statuses = ["with you!", "with Krypton!", "with humans!"]
+        statuses = ["your mama"]
         await self.change_presence(activity=discord.Game(secrets.choice(statuses)))
 
     @status_task.before_loop
