@@ -13,4 +13,4 @@ services:
     volumes:
       - ./logs:/app/logs
     restart: always
-    pull_policy: if_not_present
+    pull_policy: always
