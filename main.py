@@ -1,4 +1,3 @@
-import asyncio
 from pathlib import Path
 
 import discord
@@ -32,34 +31,6 @@ async def on_ready() -> None:
         filename = f"src.cogs.{cog_file}"
         logfire.info("Loading Cogs", filename=filename)
         await bot.load_extension(filename)
-
-
-@bot.command()
-async def xais(ctx: commands.Context, *, prompt: str) -> None:
-    msg = await ctx.send("生成中...")  # 初始化訊息
-    accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容，初始包括用戶標記
-    buffer = ""  # 緩衝區，用於累積小段文字
-    update_interval = 5
-
-    async for res in llm_services.get_xai_reply_stream(prompt=prompt):
-        if hasattr(res, "choices") and len(res.choices) > 0:
-            delta_content = res.choices[0].delta.content.strip()
-            if delta_content:  # 確保生成內容非空
-                buffer += delta_content
-
-        if buffer:  # 若緩衝區有內容，則更新訊息
-            accumulated_text += buffer
-            await msg.edit(content=accumulated_text)  # 更新訊息
-            buffer = ""  # 清空緩衝區
-            await asyncio.sleep(update_interval)  # 等待指定間隔
-
-    # 確保最終訊息完整
-    if buffer:
-        accumulated_text += buffer
-    if accumulated_text.strip():
-        await msg.edit(content=accumulated_text)
-    else:
-        await msg.edit(content=f"{ctx.author.mention} 無有效回應，請嘗試其他提示。")
 
 
 if __name__ == "__main__":

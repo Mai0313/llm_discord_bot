@@ -5,7 +5,7 @@ from src.sdk.llm import LLMServices
 llm_services = LLMServices()
 
 
-class LLMReplyCogs(commands.Cog):
+class ReplyGeneratorCogs(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -55,4 +55,4 @@ class LLMReplyCogs(commands.Cog):
 
 # 註冊 Cog
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(LLMReplyCogs(bot))
+    await bot.add_cog(ReplyGeneratorCogs(bot))
