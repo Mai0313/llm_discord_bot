@@ -69,7 +69,10 @@ class LogMessageCogs(commands.Cog):
         if message.stickers:
             for sticker in message.stickers:
                 sticker_path = save_dir / f"sticker_{sticker.id}.png"
-                await sticker.save(sticker_path)
+                try:
+                    await sticker.save(sticker_path)
+                except discord.NotFound:
+                    logfire.warn(f"Sticker {sticker.id} not found")
 
         # # 繼續處理其他命令
         # await self.bot.process_commands(message)
