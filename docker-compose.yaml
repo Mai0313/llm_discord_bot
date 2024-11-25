@@ -5,8 +5,6 @@ services:
       context: .
       target: bot
       dockerfile: ./docker/Dockerfile
-    depends_on:
-      - postgresql
     command:
       - python
       - ./main.py
