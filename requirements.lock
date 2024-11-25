@@ -22,6 +22,8 @@ anyio==4.6.2.post1
     # via openai
 async-timeout==5.0.1 ; python_full_version < '3.11'
     # via aiohttp
+    # via asyncpg
+asyncpg==0.30.0
 attrs==24.2.0
     # via aiohttp
 autorootcwd==1.0.1
@@ -108,6 +110,8 @@ protobuf==5.28.3
     # via googleapis-common-protos
     # via logfire
     # via opentelemetry-proto
+psycopg2==2.9.10
+psycopg2-binary==2.9.10
 pydantic==2.9.2
     # via openai
     # via pydantic-settings

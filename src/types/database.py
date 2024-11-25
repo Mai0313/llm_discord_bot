@@ -1,9 +1,7 @@
 from typing import Optional
 
-from pydantic import Field, AliasChoices, computed_field
-from sqlalchemy.orm import sessionmaker
+from pydantic import Field, BaseModel, AliasChoices, computed_field
 from pydantic_settings import BaseSettings
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
 
 class PostgreSQLConfig(BaseSettings):
@@ -42,18 +40,6 @@ class PostgreSQLConfig(BaseSettings):
     @property
     def postgres_dsn(self) -> str:
         return f"postgresql://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
-
-    @computed_field
-    @property
-    def postgres_async_engine(self) -> AsyncEngine:
-        return create_async_engine(self.postgres_dsn)
-
-    @computed_field
-    @property
-    def postgres_async_session(self) -> sessionmaker:
-        return sessionmaker(
-            self.postgres_async_engine, expire_on_commit=False, class_=AsyncSession
-        )
 
 
 class SQLiteConfig(BaseSettings):
@@ -96,3 +82,9 @@ class RedisConfig(BaseSettings):
         title="Redis Password",
         description="The password used to authenticate with the Redis server, if required.",
     )
+
+
+class DatabaseConfig(BaseModel):
+    postgres: PostgreSQLConfig = PostgreSQLConfig()
+    sqlite: SQLiteConfig = SQLiteConfig()
+    redis: RedisConfig = RedisConfig()
