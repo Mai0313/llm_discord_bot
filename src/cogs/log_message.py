@@ -91,14 +91,16 @@ class LogMessageCogs(commands.Cog):
     async def write2sqlite(self, message_df: pd.DataFrame) -> None:
         try:
             message_df.to_sql(
-                name="messages", con=self.sqlite_engine, if_exists="append", index=False
+                name="llmbot_message", con=self.sqlite_engine, if_exists="append", index=False
             )
         except Exception as e:
             logfire.error("Error writing to SQLite database", error=str(e))
 
     async def write2postgres(self, message_df: pd.DataFrame) -> None:
         try:
-            message_df.to_sql(name="messages", con=self.engine, if_exists="append", index=False)
+            message_df.to_sql(
+                name="llmbot_message", con=self.engine, if_exists="append", index=False
+            )
         except Exception as e:
             logfire.error("Error writing to database", error=str(e))
 
