@@ -1,5 +1,6 @@
 import os
 from typing import Union
+import logging
 from pathlib import Path
 import secrets
 import platform
@@ -12,6 +13,7 @@ discord_invite_url = (
     "https://discord.com/oauth2/authorize?client_id={client_id}&permissions=8&scope=bot"
 )
 logfire.configure()
+logging.getLogger("sqlalchemy.engine.Engine").disabled = True
 
 
 class DiscordBot(commands.Bot):
