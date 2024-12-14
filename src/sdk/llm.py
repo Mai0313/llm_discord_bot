@@ -57,9 +57,9 @@ class LLMServices(Config):
         return await completion
 
     async def get_xai_reply(self, prompt: str, image_url: Optional[str] = None) -> ChatCompletion:
-        model = "grok-beta"
+        model = "grok-2-1212"
         if image_url:
-            model = "grok-vision-beta"
+            model = "grok-2-vision-1212"
         return await self._get_reply(
             prompt=prompt,
             image_url=image_url,
@@ -91,12 +91,14 @@ class LLMServices(Config):
     ) -> AsyncGenerator[ChatCompletionChunk, None]:
         client = OpenAI(api_key=self.xai_api_key, base_url="https://api.x.ai/v1")
 
+        model="grok-2-1212"
         content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
         if image_url:
+            model = "grok-2-vision-1212"
             content.append({"type": "image_url", "image_url": {"url": f"{image_url}"}})
 
         completion = client.chat.completions.create(
-            model="grok-beta",
+            model=model,
             messages=[
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": content},
