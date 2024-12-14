@@ -15,9 +15,6 @@ class LogMessageCogs(commands.Cog):
         self.bot = bot
         database = DatabaseConfig()
         self.engine = create_engine(database.postgres.postgres_dsn, echo=True)
-        self.sqlite_engine = create_engine(
-            f"sqlite:///{database.sqlite.sqlite_file_path}", echo=True
-        )
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -83,18 +80,9 @@ class LogMessageCogs(commands.Cog):
 
         # 統一寫入資料庫
         await self.__write2postgres(message_df)
-        # await self.__write2sqlite(message_df)
 
         # # 繼續處理其他命令
         # await self.bot.process_commands(message)
-
-    async def __write2sqlite(self, message_df: pd.DataFrame) -> None:
-        try:
-            message_df.to_sql(
-                name="llmbot_message", con=self.sqlite_engine, if_exists="append", index=False
-            )
-        except Exception as e:
-            logfire.error("Error writing to SQLite database", error=str(e))
 
     async def __write2postgres(self, message_df: pd.DataFrame) -> None:
         try:
