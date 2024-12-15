@@ -1,1 +1,0 @@
-::: src.cogs.template.TemplateCogs

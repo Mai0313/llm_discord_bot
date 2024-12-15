@@ -27,6 +27,12 @@ rye-install:  ## Install Rye on your system
 	curl -sSf https://rye.astral.sh/get | RYE_INSTALL_OPTION="--yes" bash
 	cp ./docker/mirror/config.toml ~/.rye/
 	@echo 'source "$$HOME/.rye/env"' >> ~/.bashrc
+	@echo 'export PATH="$$HOME/.local/bin:$$PATH"' >> ~/.bashrc
+	@echo 'Installed Rye, please re-open your bash terminal or zsh terminal.'
+
+uv-install:  ## Install uv on your system
+	curl -LsSf https://astral.sh/uv/install.sh | sh
+	@echo 'export PATH="$$HOME/.local/bin:$$PATH"' >> ~/.bashrc
 	@echo 'Installed Rye, please re-open your bash terminal or zsh terminal.'
 
 poetry-add: ## Add all packages from requirements.txt to poetry
@@ -42,6 +48,7 @@ codegpt-install:  ## Install Codegpt
 	mv CodeGPT-0.14.2-linux-amd64 ~/.local/bin/codegpt
 	mkdir -p ~/.config/codegpt
 	cp ./docker/mirror/.codegpt.yaml ~/.config/codegpt/.codegpt.yaml
+	@echo 'export PATH="$$HOME/.local/bin:$$PATH"' >> ~/.bashrc
 	@echo 'Installed CodeGPT, please re-open your bash terminal or zsh terminal.'
 
 kubectl-install:  ## Install kubectl on your system
@@ -52,6 +59,7 @@ kubectl-install:  ## Install kubectl on your system
 
 nvm-install:  # Install nvm
 	curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+	@echo 'export PATH="$$HOME/.local/bin:$$PATH"' >> ~/.bashrc
 	@echo 'export NVM_DIR="$$HOME/.nvm"' >> ~/.bashrc
 	@echo '[ -s "$$NVM_DIR/nvm.sh" ] && \. "$$NVM_DIR/nvm.sh"' >> ~/.bashrc
 	@echo '[ -s "$$NVM_DIR/bash_completion" ] && \. "$$NVM_DIR/bash_completion"' >> ~/.bashrc
@@ -63,5 +71,12 @@ format: ## Run pre-commit hooks
 test: ## Run all tests
 	pytest
 
-submodule-update: ## Install and update all submodules
+submodule-init: ## Install and update all submodules
 	git submodule update --recursive --init
+
+submodule-update:  # Update all submodules
+	git submodule update --recursive --remote
+
+gen-docs:  ## Generate documentation
+	python ./scripts/gen_docs.py --source ./src --output ./docs/Reference --exclude .venv gen_docs
+	python ./scripts/gen_docs.py --source ./scripts --output ./docs/Scripts --exclude .venv gen_docs

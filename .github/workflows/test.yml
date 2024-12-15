@@ -52,6 +52,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          rye pin ${{ matrix.python-version }}
           rye sync
 
       - name: List dependencies
@@ -72,4 +73,4 @@ jobs:
       - name: Run pytest
         if: steps.check_tests.outputs.has_tests == 'true'
         run: |
-          rye test
+          pytest -vv

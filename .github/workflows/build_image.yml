@@ -32,17 +32,20 @@ jobs:
           - name: Build and Push Image (Base)
             target_step: base
             tag: ${{ vars.IMAGE }}-base
-            build_args: --build-arg PYTHON_VERSION=3.10.14
+            build_args: |
+              --build-arg PYTHON_VERSION=3.10.14
 
-          - name: Build and Push Image (Develop Base)
+          - name: Build and Push Image (Development)
             target_step: dev
             tag: ${{ vars.IMAGE }}-dev
-            build_args: --build-arg PYTHON_VERSION=3.10.14
+            build_args: |
+              --build-arg PYTHON_VERSION=3.10.14
 
           - name: Build and Push Images (Latest / Release)
-            target_step: bot
+            target_step: prod
             tag: ${{ vars.IMAGE }}
-            build_args: --build-arg PYTHON_VERSION=3.10.14
+            build_args: |
+              --build-arg PYTHON_VERSION=3.10.14
 
     steps:
       - name: Disable SSL Verify
