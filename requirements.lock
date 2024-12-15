@@ -113,6 +113,7 @@ protobuf==5.29.1
     # via googleapis-common-protos
     # via logfire
     # via opentelemetry-proto
+psycopg2==2.9.10
 psycopg2-binary==2.9.10
 pydantic==2.9.2
     # via openai
