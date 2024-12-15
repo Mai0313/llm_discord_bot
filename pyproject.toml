@@ -76,7 +76,6 @@ dependencies = [
     "autorootcwd>=1.0.1",
     "pandas>=2.2.3",
     "sqlalchemy>=2.0.36",
-    "psycopg2>=2.9.10",
     "psycopg2-binary>=2.9.10",
     "opencv-python>=4.10.0.84",
     "ascii-magic>=2.3.0",
