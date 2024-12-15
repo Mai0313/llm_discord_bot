@@ -89,8 +89,8 @@ class LogMessageCogs(commands.Cog):
             message_df.to_sql(
                 name="llmbot_message", con=self.engine, if_exists="append", index=False
             )
-        except Exception as e:
-            logfire.error("Error writing to database", error=str(e))
+        except Exception:
+            logfire.error("Error writing to database", _exc_info=True)
 
 
 # 註冊 Cog

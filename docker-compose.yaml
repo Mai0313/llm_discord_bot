@@ -11,6 +11,7 @@ services:
     env_file:
       - .env
     volumes:
+      - ./data:/app/data
       - ./logs:/app/logs
     restart: always
     pull_policy: always
