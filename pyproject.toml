@@ -32,6 +32,7 @@ minversion = "8.2"
 testpaths = "tests/"
 python_files = "test_*.py"
 cache_dir = "./.cache/pytest"
+asyncio_mode = "auto"
 
 [tool.coverage.report]
 exclude_lines = [
@@ -54,12 +55,12 @@ data_file = './.github/reports/.coverage'
 omit = ["./src/ameba/*"]
 
 # ================== #
-#        Rye         #
+#      Rye/uv        #
 # ================== #
 
 [project]
 name = "llmdcbot"
-version = "0.1.0"
+version = "1.0.0"
 description = "LLM Discord Bot"
 authors = [
     { name = "Wei", email = "mai@mai0313.com" },
@@ -80,6 +81,7 @@ dependencies = [
     "opencv-python>=4.10.0.84",
     "ascii-magic>=2.3.0",
 ]
+dynamic = ["readme"]
 readme = "README.md"
 requires-python = ">= 3.9"
 license = { text = "MIT" }
@@ -94,54 +96,61 @@ api = { cmd = "python ./api.py" }
 main = { cmd = "python ./main.py" }
 
 # Documentation
-"docs:src" = "python ./scripts/gen_docs.py --source ./src --output ./docs/Reference --exclude .venv gen_docs"
-"docs:scripts" = "python ./scripts/gen_docs.py --source ./scripts --output ./docs/Scripts --exclude .venv gen_docs"
+"docs:gen" = "make gen-docs"
 "docs:deploy" = "mkdocs gh-deploy --force --clean"
 "docs:run" = "mkdocs serve"
 
-gen = { chain = ["docs:src", "docs:scripts", "docs:deploy"] }
-docs = { chain = ["docs:src", "docs:scripts", "docs:run"] }
+gen = { chain = ["docs:gen", "docs:deploy"] }
+docs = { chain = ["docs:gen", "docs:run"] }
 
 
 [[tool.rye.sources]]
 name = "default"
 url = "https://pypi.org/simple"
 # url = "http://10.9.16.152/simple"
-# type = "index"
 
 # [[tool.rye.sources]]
 # name = "pytorch"
 # url = "https://download.pytorch.org/whl"
-# type = "index"
 
 # [[tool.rye.proxy]]
 # http = "http://mtkdrone01.mediatek.inc:23984"
 # https = "http://mtkdrone01.mediatek.inc:23984"
 
-[build-system]
-requires = ["hatchling", "hatch-fancy-pypi-readme"]
-build-backend = "hatchling.build"
+[[tool.uv.index]]
+name = "default"
+url = "https://pypi.org/simple"
+default = true
+
+# [[tool.uv.index]]
+# name = "pytorch"
+# url = "https://download.pytorch.org/whl"
+# default = false
 
 [tool.rye]
 managed = true
 virtual = true
 universal = true
 dev-dependencies = [
-    "notebook>=7.2.2",
+    "notebook>=7.3.1",
     "ipykernel>=6.29.5",
     "ipywidgets>=8.1.5",
     "pre-commit>=4.0.1",
-    "pytest>=8.3.3",
+    "pytest>=8.3.4",
     "pytest-cov>=6.0.0",
     "pytest-xdist>=3.6.1",
     "pytest-asyncio==0.23.8",
     "genbadge[all]>=1.1.1",
-    "mkdocs-material>=9.5.44",
+    "mkdocs-material>=9.5.47",
     "mkdocstrings-python>=1.12.2",
     "fire>=0.7.0",
     "rich>=13.9.4",
     "griffe-typingdoc>=0.2.7",
 ]
+
+[build-system]
+requires = ["hatchling", "hatch-fancy-pypi-readme"]
+build-backend = "hatchling.build"
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -205,16 +214,22 @@ replacement = '[\1](https://github.com/openai/openai-python/tree/main/\g<2>)'
 # ================== #
 [tool.ruff]
 
-# required-version = "0.1.8"
+# Enable preview features.
+preview = true
 
 # Enable Auto Fixing.
 fix = true
+unsafe-fixes = true
+
+# Whether to automatically exclude files that are ignored by .ignore, .gitignore, .git/info/exclude, and global gitignore files. Enabled by default.
+respect-gitignore = true
 
 # Enumerate all fixed violations.
 show-fixes = true
 
 # In addition to the standard set of exclusions, omit all tests, plus a specific file.
 extend-exclude = [
+    ".venv",
     "logs",
     "data",
     ".git",
@@ -226,7 +241,6 @@ extend-exclude = [
     ".mypy_cache",
     ".ruff_cache",
     "__pypackages__",
-    "./src/deprecated",
 ]
 
 # In addition to the standard set of inclusions, include `.pyw` files.
@@ -249,11 +263,18 @@ output-format = "pylint"
 # Same as Google Python Style Guide.
 line-length = 99
 
+[tool.ruff.analyze]
+# Enable preview features.
+preview = true
+detect-string-imports = true
+direction = "Dependencies"
+
 
 [tool.ruff.lint]
+# Enable preview features.
+preview = true
 
 task-tags = ["TODO", "FIXME", "BUG", "XXX", "REFACT", "NOTE", "MARK", "HACK"]
-preview = true
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
@@ -261,8 +282,13 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 # Allow autofix for all enabled rules (when `--fix`) is provided.
 # Ref: https://beta.ruff.rs/docs/rules/#ruff-specific-rules-ruf
 fixable = ["ALL"]
-unfixable = []
+
+# Allow minus-sign (U+2212), greek-small-letter-rho (U+03C1), and the asterisk-operator (U+2217),
+# which could be confused for "-", "p", and "*", respectively.
 allowed-confusables = ["。", "，", "*", "；", "：", "、", "「", "」", "『", "』", "（", "）", "〔", "〕", "【", "】", "《", "》", "〈", "〉", "〖", "〗"]
+
+# Require explicit selection of preview rules.
+explicit-preview-rules = true
 
 select = [
     "F",  # pyflakes
@@ -380,8 +406,8 @@ keep-runtime-typing = true
 "__init__.py" = ["E402", "F401"]
 "*.ipynb" = ["T201", "F401", "S105", "F811", "ANN", "PERF", "SLF"]
 "tests/*" = ["S101", "ANN"]
-"notebooks/exp/*.ipynb" = ["UP", "DOC", "RUF", "D", "C"]
-"examples/*" = ["T201", "F401", "S105", "F811", "ANN", "PERF", "SLF"]
+"notebooks/*.ipynb" = ["UP", "DOC", "RUF", "D", "C", "F401", "T201"]
+"examples/*.py" = ["UP", "DOC", "RUF", "D", "C", "F401", "T201"]
 
 [tool.ruff.lint.isort]
 case-sensitive = true
@@ -425,12 +451,15 @@ max-returns = 6
 max-statements = 50
 
 [tool.ruff.format]
+# Enable preview style formatting.
+preview = true
+# Enable reformatting of code snippets in docstrings.
 docstring-code-format = true
+# Format all docstring code snippets with a line length of 60.
 docstring-code-line-length = 99
 exclude = ["generated"]
 indent-style = "space"
 line-ending = "auto"
-preview = true
 quote-style = "double"
 skip-magic-trailing-comma = true
 
@@ -449,7 +478,7 @@ console_colors = "auto"
 console_span_style = "show-parents"
 console_include_timestamps = true
 console_verbose = true
-console_min_log_level = "trace"
+console_min_log_level = "debug"
 show_summary = true
 data_dir = "./.cache/.logfire"
 # base_url = ""

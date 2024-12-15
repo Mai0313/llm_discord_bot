@@ -9,15 +9,15 @@
 #   generate-hashes: false
 #   universal: true
 
-aiohappyeyeballs==2.4.3
+aiohappyeyeballs==2.4.4
     # via aiohttp
-aiohttp==3.11.7
+aiohttp==3.11.10
     # via discord-py
-aiosignal==1.3.1
+aiosignal==1.3.2
     # via aiohttp
 annotated-types==0.7.0
     # via pydantic
-anyio==4.6.2.post1
+anyio==4.7.0
     # via httpx
     # via openai
 ascii-magic==2.3.0
@@ -26,7 +26,7 @@ async-timeout==5.0.1 ; python_full_version < '3.11'
 attrs==24.2.0
     # via aiohttp
 autorootcwd==1.0.1
-certifi==2024.8.30
+certifi==2024.12.14
     # via httpcore
     # via httpx
     # via requests
@@ -57,7 +57,7 @@ h11==0.14.0
     # via httpcore
 httpcore==1.0.7
     # via httpx
-httpx==0.27.2
+httpx==0.28.1
     # via openai
 idna==3.10
     # via anyio
@@ -66,9 +66,9 @@ idna==3.10
     # via yarl
 importlib-metadata==8.5.0
     # via opentelemetry-api
-jiter==0.8.0
+jiter==0.8.2
     # via openai
-logfire==2.4.1
+logfire==2.7.1
 markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
@@ -79,26 +79,26 @@ multidict==6.1.0
 numpy==2.0.2
     # via opencv-python
     # via pandas
-openai==1.55.1
+openai==1.57.4
 opencv-python==4.10.0.84
-opentelemetry-api==1.28.2
+opentelemetry-api==1.29.0
     # via opentelemetry-exporter-otlp-proto-http
     # via opentelemetry-instrumentation
     # via opentelemetry-sdk
     # via opentelemetry-semantic-conventions
-opentelemetry-exporter-otlp-proto-common==1.28.2
+opentelemetry-exporter-otlp-proto-common==1.29.0
     # via opentelemetry-exporter-otlp-proto-http
-opentelemetry-exporter-otlp-proto-http==1.28.2
+opentelemetry-exporter-otlp-proto-http==1.29.0
     # via logfire
-opentelemetry-instrumentation==0.49b2
+opentelemetry-instrumentation==0.50b0
     # via logfire
-opentelemetry-proto==1.28.2
+opentelemetry-proto==1.29.0
     # via opentelemetry-exporter-otlp-proto-common
     # via opentelemetry-exporter-otlp-proto-http
-opentelemetry-sdk==1.28.2
+opentelemetry-sdk==1.29.0
     # via logfire
     # via opentelemetry-exporter-otlp-proto-http
-opentelemetry-semantic-conventions==0.49b2
+opentelemetry-semantic-conventions==0.50b0
     # via opentelemetry-instrumentation
     # via opentelemetry-sdk
 packaging==24.2
@@ -106,10 +106,10 @@ packaging==24.2
 pandas==2.2.3
 pillow==11.0.0
     # via ascii-magic
-propcache==0.2.0
+propcache==0.2.1
     # via aiohttp
     # via yarl
-protobuf==5.28.3
+protobuf==5.29.1
     # via googleapis-common-protos
     # via logfire
     # via opentelemetry-proto
@@ -120,7 +120,7 @@ pydantic==2.9.2
     # via pydantic-settings
 pydantic-core==2.23.4
     # via pydantic
-pydantic-settings==2.6.1
+pydantic-settings==2.7.0
 pygments==2.18.0
     # via rich
 pyrootutils==1.0.4
@@ -137,14 +137,13 @@ requests==2.32.3
     # via opentelemetry-exporter-otlp-proto-http
 rich==13.9.4
     # via logfire
-six==1.16.0
+six==1.17.0
     # via python-dateutil
 sniffio==1.3.1
     # via anyio
-    # via httpx
     # via openai
 sqlalchemy==2.0.36
-tomli==2.1.0 ; python_full_version < '3.11'
+tomli==2.2.1 ; python_full_version < '3.11'
     # via logfire
 tqdm==4.67.1
     # via openai
@@ -165,7 +164,7 @@ urllib3==2.2.3
 wrapt==1.17.0
     # via deprecated
     # via opentelemetry-instrumentation
-yarl==1.18.0
+yarl==1.18.3
     # via aiohttp
 zipp==3.21.0
     # via importlib-metadata
