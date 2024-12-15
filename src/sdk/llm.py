@@ -91,7 +91,7 @@ class LLMServices(Config):
     ) -> AsyncGenerator[ChatCompletionChunk, None]:
         client = OpenAI(api_key=self.xai_api_key, base_url="https://api.x.ai/v1")
 
-        model="grok-2-1212"
+        model = "grok-2-1212"
         content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
         if image_url:
             model = "grok-2-vision-1212"
