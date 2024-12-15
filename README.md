@@ -27,6 +27,6 @@ This is a template for you to use for any project. It has all the actions set up
 
 ## For More info, check the [Docs](https://mai0313.github.io/llm_discord_bot/)
 
-> \[!IMPORTANT\]
+> [!IMPORTANT]
 >
 > - Some actions may not work if you don't give the correct secrets or environment variables.
