@@ -45,32 +45,77 @@ class MessageFetcher(commands.Cog):
 
     @commands.command()
     async def sum(self, ctx: commands.Context, *, prompt: str) -> None:
-        """總結當前頻道前 20 則訊息"""
-        try:
-            history_count = int(prompt)
-        except Exception:
-            history_count = 20
-            await ctx.send("你輸入的不是數字，將自動總結最近 20 則消息。")
+        """總結當前頻道前 N 則訊息，或若指定用戶則總結該用戶的 N 則訊息"""
+        # 尝试解析輸入
+        args = prompt.strip().split()
+
+        history_count = 20
+        target_user = None
+
+        # 第一個參數可能是數字
+        if args:
+            try:
+                # 嘗試將第一個 token 轉為數字
+                history_count = int(args[0])
+                # 如果後面還有參數，可能是用戶 mention
+                if len(args) > 1:
+                    # 剩餘的內容可能是用戶 mention，如 <@!1234567890>
+                    # 我們試著從該文字中取得 mentioned_users
+                    mentions = ctx.message.mentions
+                    if mentions:
+                        target_user = mentions[0]
+                    else:
+                        # 如果沒有mentions，那就維持原狀，不處理
+                        pass
+            except ValueError:
+                # 第一個參數不是數字，則依舊使用20並提醒
+                await ctx.send("你輸入的不是數字，將自動總結最近 20 則消息。")
+                # 嘗試抓mentions
+                mentions = ctx.message.mentions
+                if mentions:
+                    target_user = mentions[0]
+        else:
+            # 沒有提供任何參數
+            pass
+
         try:
             channel = ctx.channel  # 獲取當前頻道
 
-            # 獲取最近的 20 則消息
             messages: list[discord.Message] = []
-            async for message in channel.history(limit=history_count):
-                messages.append(message)
+
+            if target_user is not None:
+                # 如果有指定用戶，需要從歷史訊息中尋找該用戶的訊息，直到湊滿 history_count
+                async for message in channel.history(limit=None):
+                    if (
+                        message.author.id == target_user.id
+                        and not message.author.bot
+                        and not message.content.startswith("!sum")
+                    ):
+                        messages.append(message)
+                        if len(messages) == history_count:
+                            break
+            else:
+                # 沒有指定用戶，直接取得最近的 history_count 則訊息
+                async for message in channel.history(limit=history_count):
+                    if message.author.bot:
+                        continue
+                    if message.content.startswith("!sum"):
+                        continue
+                    messages.append(message)
 
             if not messages:
-                await ctx.send("此頻道沒有任何消息。")
+                if target_user is not None:
+                    await ctx.send(
+                        f"此頻道中沒有 {target_user.mention} 的訊息，或不足以取得 {history_count} 則。"
+                    )
+                else:
+                    await ctx.send("此頻道沒有任何消息。")
                 return
 
             # 總結消息內容
             chat_history = []
             for message in messages:
                 content = message.content
-                if message.content.startswith("!sum"):
-                    continue
-                if message.author.bot:
-                    continue
                 if message.embeds:
                     content = "嵌入內容: " + ", ".join(
                         embed.description for embed in message.embeds if embed.description
@@ -81,7 +126,7 @@ class MessageFetcher(commands.Cog):
                     )
                 chat_history.append(f"{message.author.name}: {content}")
 
-            # reverse chat_history
+            # 反轉消息順序（確保顯示由舊到新）
             chat_history.reverse()
 
             chat_history_string = "\n".join(chat_history)
