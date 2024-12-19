@@ -46,6 +46,8 @@ class MessageFetcher(commands.Cog):
                 content = message.content
                 if message.content.startswith("!sum"):
                     continue
+                if message.author.bot:
+                    continue
                 if message.embeds:
                     content = "嵌入內容: " + ", ".join(
                         embed.description for embed in message.embeds if embed.description
