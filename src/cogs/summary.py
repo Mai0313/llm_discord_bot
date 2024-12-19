@@ -1,5 +1,7 @@
+import base64
 from typing import TYPE_CHECKING
 
+import aiohttp
 from discord.ext import commands
 
 from src.sdk.llm import LLMServices
@@ -107,13 +109,29 @@ class MessageFetcher(commands.Cog):
 
             # 處理消息內容
             content = replied_message.content
+            image_urls = []
+            base64_images = []
             if replied_message.attachments:
                 image_urls = [attachment.url for attachment in replied_message.attachments]
+            if replied_message.embeds:
+                content = "嵌入內容: " + ", ".join(
+                    embed.description for embed in replied_message.embeds if embed.description
+                )
+            if replied_message.stickers:
+                async with aiohttp.ClientSession() as session:
+                    for sticker in replied_message.stickers:
+                        async with session.get(sticker.url) as response:
+                            if response.status == 200:
+                                sticker_data = await response.read()
+                                base64_image = base64.b64encode(sticker_data).decode("utf-8")
+                                base64_images.append(f"data:image/png;base64,{base64_image}")
+
+            all_images = [*image_urls, *base64_images]
 
             # 傳送內容給 LLM
             prompt = f"{EXPLANATION_PROMPT}\n{content}"
             explanation = await self.describe_services.get_xai_reply(
-                prompt=prompt, image_urls=image_urls
+                prompt=prompt, image_urls=all_images
             )
             explanation = explanation.choices[0].message.content
 
