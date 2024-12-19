@@ -12,6 +12,7 @@ SUMMARY_ROMPT = """
 總結以下 {history_count} 則消息：
 {chat_history_string}
 請將總結的部分以發送者當作主要分類，並將他在這段期間內發送的內容總結。
+請適當在重點中加入一些時間軸，以便更好地理解這段對話。
 例如:
 
 Wei:
@@ -67,7 +68,7 @@ class MessageFetcher(commands.Cog):
                     content = "附件: " + ", ".join(
                         attachment.url for attachment in message.attachments
                     )
-                chat_history.append(f"{message.author.name}: {content}")
+                chat_history.append(f"{message.author.name}: {content} at {message.created_at}")
 
             chat_history_string = "\n".join(chat_history)
             prompt = SUMMARY_ROMPT.format(
