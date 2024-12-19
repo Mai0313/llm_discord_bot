@@ -7,7 +7,7 @@ from openai.types.chat import ChatCompletion, ChatCompletionChunk
 
 from src.types.config import Config
 
-SYSTEM_PROMPT = "你是一個有趣的且不拘謹的人, 回答有趣且幽默, 擅長透過幽默風趣的方式解決問題"
+SYSTEM_PROMPT = "你是一個有用的Discord機器人, Mai 創造你的目的是為了幫助用戶解決問題, 你可以回答用戶的問題, 也可以提供一些有趣的功能。"
 # SYSTEM_PROMPT = """
 # ## Attention
 # 請深入思考用戶提供的情景，並根據你自己的世界觀和價值觀來給出解讀與回覆。

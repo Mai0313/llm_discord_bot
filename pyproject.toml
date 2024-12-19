@@ -362,10 +362,6 @@ ignore = [
     "W505",
     # "N804",
     "E266",
-    # No need annotation for `self`
-    "ANN101",
-    # No need annotation for `cls`
-    "ANN102",
     # No need annotation for `__init__`
     "ANN204",
     # no need timeout for requests
