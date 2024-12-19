@@ -36,16 +36,14 @@ class LLMServices(Config):
     system_prompt: str = Field(default=SYSTEM_PROMPT)
 
     async def _get_reply(
-        self, prompt: str, image_url: Optional[str], api_key: str, base_url: str, model: str
+        self, prompt: str, image_urls: Optional[list[str]], api_key: str, base_url: str, model: str
     ) -> ChatCompletion:
         client = AsyncOpenAI(api_key=api_key, base_url=base_url)
 
         content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image_url:
-            content.append({
-                "type": "image_url",
-                "image_url": {"url": f"{image_url}", "detail": "high"},
-            })
+        if image_urls:
+            for url in image_urls:
+                content.append({"type": "image_url", "image_url": {"url": url, "detail": "high"}})
 
         completion = client.chat.completions.create(
             model=model,
@@ -56,46 +54,53 @@ class LLMServices(Config):
         )
         return await completion
 
-    async def get_xai_reply(self, prompt: str, image_url: Optional[str] = None) -> ChatCompletion:
+    async def get_xai_reply(
+        self, prompt: str, image_urls: Optional[list[str]] = None
+    ) -> ChatCompletion:
         model = "grok-2-1212"
-        if image_url:
+        if image_urls:
             model = "grok-2-vision-1212"
         return await self._get_reply(
             prompt=prompt,
-            image_url=image_url,
+            image_urls=image_urls,
             api_key=self.xai_api_key,
             base_url="https://api.x.ai/v1",
             model=model,
         )
 
-    async def get_oai_reply(self, prompt: str, image_url: Optional[str] = None) -> ChatCompletion:
+    async def get_oai_reply(
+        self, prompt: str, image_urls: Optional[list[str]] = None
+    ) -> ChatCompletion:
         return await self._get_reply(
             prompt=prompt,
-            image_url=image_url,
+            image_urls=image_urls,
             api_key=self.openai_api_key,
             base_url="https://api.openai.com/v1",
             model="gpt-4o-mini",
         )
 
-    async def get_gai_reply(self, prompt: str, image_url: Optional[str] = None) -> ChatCompletion:
+    async def get_gai_reply(
+        self, prompt: str, image_urls: Optional[list[str]] = None
+    ) -> ChatCompletion:
         return await self._get_reply(
             prompt=prompt,
-            image_url=image_url,
+            image_urls=image_urls,
             api_key=self.googleai_api_key,
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             model="gemini-1.5-pro",
         )
 
     async def get_xai_reply_stream(
-        self, prompt: str, image_url: Optional[str] = None
+        self, prompt: str, image_urls: Optional[list[str]] = None
     ) -> AsyncGenerator[ChatCompletionChunk, None]:
         client = OpenAI(api_key=self.xai_api_key, base_url="https://api.x.ai/v1")
 
         model = "grok-2-1212"
         content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image_url:
+        if image_urls:
             model = "grok-2-vision-1212"
-            content.append({"type": "image_url", "image_url": {"url": f"{image_url}"}})
+            for url in image_urls:
+                content.append({"type": "image_url", "image_url": {"url": url, "detail": "high"}})
 
         completion = client.chat.completions.create(
             model=model,
@@ -110,13 +115,14 @@ class LLMServices(Config):
                 yield chunk
 
     async def get_oai_reply_stream(
-        self, prompt: str, image_url: Optional[str] = None
+        self, prompt: str, image_urls: Optional[list[str]] = None
     ) -> AsyncGenerator[ChatCompletionChunk, None]:
         client = OpenAI(api_key=self.openai_api_key, base_url="https://api.openai.com/v1")
 
         content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image_url:
-            content.append({"type": "image_url", "image_url": {"url": f"{image_url}"}})
+        if image_urls:
+            for url in image_urls:
+                content.append({"type": "image_url", "image_url": {"url": url, "detail": "high"}})
 
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -131,7 +137,7 @@ class LLMServices(Config):
                 yield chunk
 
     async def get_gai_reply_stream(
-        self, prompt: str, image_url: Optional[str] = None
+        self, prompt: str, image_urls: Optional[list[str]] = None
     ) -> AsyncGenerator[ChatCompletionChunk, None]:
         client = OpenAI(
             api_key=self.googleai_api_key,
@@ -139,8 +145,9 @@ class LLMServices(Config):
         )
 
         content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
-        if image_url:
-            content.append({"type": "image_url", "image_url": {"url": f"{image_url}"}})
+        if image_urls:
+            for url in image_urls:
+                content.append({"type": "image_url", "image_url": {"url": url, "detail": "high"}})
 
         completion = client.chat.completions.create(
             model="gemini-1.5-pro",

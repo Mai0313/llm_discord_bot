@@ -18,11 +18,9 @@ class ReplyGeneratorCogs(commands.Cog):
     async def xai(self, ctx: commands.Context, *, prompt: str = "") -> None:
         # 檢查是否有附件
         if ctx.message.attachments:
-            # 取得附件的 URL（假設只有一個圖片）
-            image_url = ctx.message.attachments[0].url
-            # await ctx.send(f"收到圖片: {image_url}")
-            # 在這裡你可以進一步處理圖片 URL，例如傳遞給 llm_services 或其他服務
-            response = await self.llm_services.get_xai_reply(prompt=prompt, image_url=image_url)
+            # 取得附件的 URL
+            image_urls = [attachment.url for attachment in ctx.message.attachments]
+            response = await self.llm_services.get_xai_reply(prompt=prompt, image_urls=image_urls)
         else:
             # 如果沒有圖片附件，僅處理文字提示
             response = await self.llm_services.get_xai_reply(prompt=prompt)
@@ -33,11 +31,9 @@ class ReplyGeneratorCogs(commands.Cog):
     @commands.command()
     async def oai(self, ctx: commands.Context, *, prompt: str) -> None:
         if ctx.message.attachments:
-            # 取得附件的 URL（假設只有一個圖片）
-            image_url = ctx.message.attachments[0].url
-            # await ctx.send(f"收到圖片，URL 為: {image_url}")
-            # 在這裡你可以進一步處理圖片 URL，例如傳遞給 llm_services 或其他服務
-            response = await self.llm_services.get_oai_reply(prompt=prompt, image_url=image_url)
+            # 取得附件的 URL
+            image_urls = [attachment.url for attachment in ctx.message.attachments]
+            response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=image_urls)
         else:
             # 如果沒有圖片附件，僅處理文字提示
             response = await self.llm_services.get_oai_reply(prompt=prompt)
@@ -47,11 +43,9 @@ class ReplyGeneratorCogs(commands.Cog):
     @commands.command()
     async def gai(self, ctx: commands.Context, *, prompt: str) -> None:
         if ctx.message.attachments:
-            # 取得附件的 URL（假設只有一個圖片）
-            image_url = ctx.message.attachments[0].url
-            # await ctx.send(f"收到圖片，URL 為: {image_url}")
-            # 在這裡你可以進一步處理圖片 URL，例如傳遞給 llm_services 或其他服務
-            response = await self.llm_services.get_gai_reply(prompt=prompt, image_url=image_url)
+            # 取得附件的 URL
+            image_urls = [attachment.url for attachment in ctx.message.attachments]
+            response = await self.llm_services.get_gai_reply(prompt=prompt, image_urls=image_urls)
         else:
             # 如果沒有圖片附件，僅處理文字提示
             response = await self.llm_services.get_gai_reply(prompt=prompt)

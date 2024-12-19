@@ -29,11 +29,17 @@ SUMMARY_MESSAGE = """
 {chat_history_string}
 """
 
+EXPLANATION_PROMPT = """
+用戶看不懂該對話，請嘗試解釋該對話的內容。
+如果用戶沒有說話 只傳送圖片，請解釋圖片的內容。
+"""
+
 
 class MessageFetcher(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.llm_services = LLMServices(system_prompt=SUMMARY_ROMPT)
+        self.describe_services = LLMServices(system_prompt=EXPLANATION_PROMPT)
 
     @commands.command()
     async def sum(self, ctx: commands.Context, *, prompt: str) -> None:
@@ -85,6 +91,33 @@ class MessageFetcher(commands.Cog):
             summary = summary.choices[0].message.content
 
             await ctx.send(summary)
+        except Exception as e:
+            await ctx.send(f"發生錯誤：{e}")
+
+    @commands.command()
+    async def wtf(self, ctx: commands.Context) -> None:
+        """解釋回復的消息"""
+        try:
+            if not ctx.message.reference:
+                await ctx.send("請回復某條消息以使用此指令。")
+                return
+
+            # 獲取被回復的消息
+            replied_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+
+            # 處理消息內容
+            content = replied_message.content
+            if replied_message.attachments:
+                image_urls = [attachment.url for attachment in replied_message.attachments]
+
+            # 傳送內容給 LLM
+            prompt = f"{EXPLANATION_PROMPT}\n{content}"
+            explanation = await self.describe_services.get_xai_reply(
+                prompt=prompt, image_urls=image_urls
+            )
+            explanation = explanation.choices[0].message.content
+
+            await ctx.send(explanation)
         except Exception as e:
             await ctx.send(f"發生錯誤：{e}")
 
