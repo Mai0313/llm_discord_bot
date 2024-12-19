@@ -76,7 +76,7 @@ class LLMServices(Config):
             image_urls=image_urls,
             api_key=self.openai_api_key,
             base_url="https://api.openai.com/v1",
-            model="gpt-4o-mini",
+            model="gpt-4o",
         )
 
     async def get_gai_reply(

@@ -114,6 +114,7 @@ class MessageFetcher(commands.Cog):
 
             # 總結消息內容
             chat_history = []
+            image_urls = []
             for message in messages:
                 content = message.content
                 if message.embeds:
@@ -124,6 +125,7 @@ class MessageFetcher(commands.Cog):
                     content = "附件: " + ", ".join(
                         attachment.url for attachment in message.attachments
                     )
+                    image_urls = [attachment.url for attachment in message.attachments]
                 chat_history.append(f"{message.author.name}: {content}")
 
             # 反轉消息順序（確保顯示由舊到新）
@@ -134,7 +136,7 @@ class MessageFetcher(commands.Cog):
                 history_count=history_count, chat_history_string=chat_history_string
             )
 
-            summary = await self.llm_services.get_xai_reply(prompt=prompt)
+            summary = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=image_urls)
             summary = summary.choices[0].message.content
 
             await ctx.send(summary)
@@ -175,7 +177,7 @@ class MessageFetcher(commands.Cog):
 
             # 傳送內容給 LLM
             prompt = f"{EXPLANATION_PROMPT}\n{content}"
-            explanation = await self.describe_services.get_xai_reply(
+            explanation = await self.describe_services.get_oai_reply(
                 prompt=prompt, image_urls=all_images
             )
             explanation = explanation.choices[0].message.content
