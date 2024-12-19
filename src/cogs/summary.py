@@ -9,10 +9,7 @@ if TYPE_CHECKING:
 
 
 SUMMARY_ROMPT = """
-總結以下 {history_count} 則消息：
-{chat_history_string}
 請將總結的部分以發送者當作主要分類，並將他在這段期間內發送的內容總結。
-請適當在重點中加入一些時間軸，以便更好地理解這段對話。
 例如:
 
 Wei:
@@ -24,14 +21,19 @@ Toudou:
 - 他分享了一個 TikTok 影片
 - 並分享了他對於那位男性的看法
 
-這樣的總結方式可以幫助你更好地理解這段對話。
+在總結的最後，請將這些內容整合成一個易懂的重點總結。
+"""
+
+SUMMARY_MESSAGE = """
+總結以下 {history_count} 則消息：
+{chat_history_string}
 """
 
 
 class MessageFetcher(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.llm_services = LLMServices()
+        self.llm_services = LLMServices(system_prompt=SUMMARY_ROMPT)
 
     @commands.command()
     async def sum(self, ctx: commands.Context, *, prompt: str) -> None:
@@ -40,6 +42,7 @@ class MessageFetcher(commands.Cog):
             history_count = int(prompt)
         except Exception:
             history_count = 20
+            await ctx.send("你輸入的不是數字，將自動總結最近 20 則消息。")
         try:
             channel = ctx.channel  # 獲取當前頻道
 
@@ -68,10 +71,13 @@ class MessageFetcher(commands.Cog):
                     content = "附件: " + ", ".join(
                         attachment.url for attachment in message.attachments
                     )
-                chat_history.append(f"{message.author.name}: {content} at {message.created_at}")
+                chat_history.append(f"{message.author.name}: {content}")
+
+            # reverse chat_history
+            chat_history.reverse()
 
             chat_history_string = "\n".join(chat_history)
-            prompt = SUMMARY_ROMPT.format(
+            prompt = SUMMARY_MESSAGE.format(
                 history_count=history_count, chat_history_string=chat_history_string
             )
 
