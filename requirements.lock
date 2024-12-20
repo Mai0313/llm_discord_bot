@@ -21,8 +21,9 @@ anyio==4.7.0
     # via httpx
     # via openai
 ascii-magic==2.3.0
-async-timeout==5.0.1 ; python_full_version < '3.11'
+async-timeout==5.0.1 ; python_full_version < '3.11.3'
     # via aiohttp
+    # via redis
 attrs==24.2.0
     # via aiohttp
 autorootcwd==1.0.1
@@ -133,6 +134,7 @@ python-dotenv==1.0.1
     # via pyrootutils
 pytz==2024.2
     # via pandas
+redis==5.2.1
 requests==2.32.3
     # via opentelemetry-exporter-otlp-proto-http
 rich==13.9.4

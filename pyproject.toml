@@ -80,6 +80,7 @@ dependencies = [
     "opencv-python>=4.10.0.84",
     "ascii-magic>=2.3.0",
     "psycopg2>=2.9.10",
+    "redis>=5.2.1",
 ]
 dynamic = ["readme"]
 readme = "README.md"

@@ -34,8 +34,9 @@ asttokens==3.0.0
     # via stack-data
 async-lru==2.0.4
     # via jupyterlab
-async-timeout==5.0.1 ; python_full_version < '3.11'
+async-timeout==5.0.1 ; python_full_version < '3.11.3'
     # via aiohttp
+    # via redis
 attrs==24.2.0
     # via aiohttp
     # via jsonschema
@@ -420,6 +421,7 @@ pyzmq==26.2.0
     # via ipykernel
     # via jupyter-client
     # via jupyter-server
+redis==5.2.1
 referencing==0.35.1
     # via jsonschema
     # via jsonschema-specifications

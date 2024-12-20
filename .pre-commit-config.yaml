@@ -91,6 +91,7 @@ repos:
           - "Types-requests"
           - "Types-urllib3"
           - "Types-attrs"
+          - "Types-redis"
 
   # - repo: https://github.com/RobertCraigie/pyright-python
   #   rev: v1.1.374
