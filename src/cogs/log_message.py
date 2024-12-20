@@ -79,6 +79,7 @@ class LogMessageCogs(commands.Cog):
         message_df = pd.DataFrame(message_data)
 
         # 統一寫入資料庫
+        message_df.to_csv("./data/llmbot_message.csv", mode="a", header=False, index=False)
         await self.__write2postgres(message_df)
 
         # # 繼續處理其他命令
@@ -89,7 +90,6 @@ class LogMessageCogs(commands.Cog):
             message_df.to_sql(
                 name="llmbot_message", con=self.engine, if_exists="append", index=False
             )
-            message_df.to_csv("./data/llmbot_message.csv", mode="a", header=False, index=False)
         except Exception:
             logfire.error("Error writing to database", _exc_info=True)
 

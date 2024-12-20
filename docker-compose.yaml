@@ -26,12 +26,3 @@ services:
       - ./data/postgresql:/var/lib/postgresql/data
     restart: always
     pull_policy: always
-
-  redis:
-    image: redis:7.2.5-alpine
-    command:
-      - redis-server
-    volumes:
-      - ./data/redis:/var/lib/redis
-    restart: always
-    pull_policy: always
