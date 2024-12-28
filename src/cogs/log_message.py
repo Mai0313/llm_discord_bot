@@ -77,21 +77,14 @@ class LogMessageCogs(commands.Cog):
             "stickers": [";".join(sticker_paths) if sticker_paths else ""],
         }
         message_df = pd.DataFrame(message_data)
+        message_df = message_df.astype(str)
 
         # 統一寫入資料庫
         message_df.to_csv("./data/llmbot_message.csv", mode="a", header=False, index=False)
-        await self.__write2postgres(message_df)
+        message_df.to_sql(name="llmbot_message", con=self.engine, if_exists="append", index=False)
 
         # # 繼續處理其他命令
         # await self.bot.process_commands(message)
-
-    async def __write2postgres(self, message_df: pd.DataFrame) -> None:
-        try:
-            message_df.to_sql(
-                name="llmbot_message", con=self.engine, if_exists="append", index=False
-            )
-        except Exception:
-            logfire.error("Error writing to database", _exc_info=True)
 
 
 # 註冊 Cog
