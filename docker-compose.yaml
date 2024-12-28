@@ -19,17 +19,17 @@ services:
     restart: always
     pull_policy: always
 
-  postgresql:
-    image: postgres:16.3-alpine
-    environment:
-      PUID: 0
-      PGID: 0
-      UMASK: 022
-      POSTGRES_DB: ${POSTGRES_DB:-postgres}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      PGDATA: /var/lib/postgresql/data
-    volumes:
-      - ./data/postgresql:/var/lib/postgresql/data
-    restart: always
-    pull_policy: always
+  # postgresql:
+  #   image: postgres:16.3-alpine
+  #   environment:
+  #     PUID: 0
+  #     PGID: 0
+  #     UMASK: 022
+  #     POSTGRES_DB: ${POSTGRES_DB:-postgres}
+  #     POSTGRES_USER: ${POSTGRES_USER:-postgres}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+  #     PGDATA: /var/lib/postgresql/data
+  #   volumes:
+  #     - ./data/postgresql:/var/lib/postgresql/data
+  #   restart: always
+  #   pull_policy: always
