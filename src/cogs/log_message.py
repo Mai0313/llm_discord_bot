@@ -81,7 +81,7 @@ class LogMessageCogs(commands.Cog):
 
         # 統一寫入資料庫
         message_df.to_csv("./data/llmbot_message.csv", mode="a", header=False, index=False)
-        message_df.to_sql(name="llmbot_message", con=self.engine, if_exists="append", index=False)
+        # message_df.to_sql(name="llmbot_message", con=self.engine, if_exists="append", index=False)
 
         # # 繼續處理其他命令
         # await self.bot.process_commands(message)
