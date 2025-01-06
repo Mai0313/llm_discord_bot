@@ -13,12 +13,16 @@ class StreamReplyGeneratorCogs(commands.Cog):
 
     @commands.command()
     async def oais(self, ctx: commands.Context, *, prompt: str) -> None:
+        image_urls = None
+        if ctx.message.attachments:
+            # 取得附件的 URL
+            image_urls = [attachment.url for attachment in ctx.message.attachments]
         msg = await ctx.send("生成中...")  # 初始化訊息
         accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容，初始包括用戶標記
         buffer = ""  # 緩衝區，用於累積小段文字
         update_interval = 1
 
-        async for res in llm_services.get_oai_reply_stream(prompt=prompt):
+        async for res in llm_services.get_oai_reply_stream(prompt=prompt, image_urls=image_urls):
             if hasattr(res, "choices") and len(res.choices) > 0:
                 delta_content = res.choices[0].delta.content.strip()
                 if delta_content:  # 確保生成內容非空
