@@ -35,11 +35,6 @@ class LogMessageCogs(commands.Cog):
             # 如果是伺服器中的頻道，使用頻道名稱
             channel_name = f"{message.channel.name}_{message.channel.id}"
 
-        save_dir = Path("data") / today / channel_name
-
-        # 確保資料夾存在
-        save_dir.mkdir(parents=True, exist_ok=True)
-
         logfire.info(
             f"{message.author.name}: {message.content}",
             author=message.author.name,
@@ -48,23 +43,26 @@ class LogMessageCogs(commands.Cog):
             channel_id=message.channel.id,
         )
 
-        # 準備訊息資料作為 DataFrame
-        # 包含附件和貼圖
-        attachment_paths = []
-        for attachment in message.attachments:
-            attachment_path = save_dir / attachment.filename
-            await attachment.save(attachment_path)
-            attachment_paths.append(str(attachment_path))
+        if message.attachments:
+            save_dir = Path("data") / today / channel_name
+            save_dir.mkdir(parents=True, exist_ok=True)
+            # 準備訊息資料作為 DataFrame
+            # 包含附件和貼圖
+            attachment_paths = []
+            for attachment in message.attachments:
+                attachment_path = save_dir / attachment.filename
+                await attachment.save(attachment_path)
+                attachment_paths.append(str(attachment_path))
 
-        sticker_paths = []
-        if message.stickers:
-            for sticker in message.stickers:
-                sticker_path = save_dir / f"sticker_{sticker.id}.png"
-                try:
-                    await sticker.save(sticker_path)
-                    sticker_paths.append(str(sticker_path))
-                except discord.NotFound:
-                    logfire.warn("Sticker is not found", sticker_id=sticker.id)
+            sticker_paths = []
+            if message.stickers:
+                for sticker in message.stickers:
+                    sticker_path = save_dir / f"sticker_{sticker.id}.png"
+                    try:
+                        await sticker.save(sticker_path)
+                        sticker_paths.append(str(sticker_path))
+                    except discord.NotFound:
+                        logfire.warn("Sticker is not found", sticker_id=sticker.id)
 
         message_data = {
             "author": [message.author.name],
