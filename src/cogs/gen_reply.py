@@ -34,8 +34,11 @@ class ReplyGeneratorCogs(commands.Cog):
 
     @commands.command()
     async def search(self, ctx: commands.Context, *, prompt: str) -> None:
-        response = await self.llm_services.get_search_result(prompt=prompt)
-        await ctx.send(content=response.choices[0].message.content)
+        try:
+            response = await self.llm_services.get_search_result(prompt=prompt)
+            await ctx.send(content=response.choices[0].message.content)
+        except Exception as e:
+            await ctx.send(content=f"搜尋時發生錯誤: {e!s}")
 
     @commands.command()
     async def graph(self, ctx: commands.Context, *, prompt: str) -> None:
@@ -48,9 +51,12 @@ class ReplyGeneratorCogs(commands.Cog):
 
     @commands.command()
     async def oai(self, ctx: commands.Context, *, prompt: str) -> None:
-        attachments = await self._get_attachment_list(message=ctx.message)
-        response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
-        await ctx.send(f"{ctx.author.mention} {response.choices[0].message.content}")
+        try:
+            attachments = await self._get_attachment_list(message=ctx.message)
+            response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
+            await ctx.send(f"{ctx.author.mention} {response.choices[0].message.content}")
+        except Exception as e:
+            await ctx.send(content=f"處理訊息發生錯誤: {e!s}")
 
     @commands.command()
     async def wtf(self, ctx: commands.Context) -> None:
