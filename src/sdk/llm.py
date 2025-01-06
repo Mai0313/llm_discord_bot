@@ -41,6 +41,18 @@ SYSTEM_PROMPT = "你是一個有用的Discord機器人, Mai 創造你的目的�
 
 class LLMServices(Config):
     model_config = ConfigDict(arbitrary_types_allowed=True)
+    llm_model: str = Field(
+        default="gpt-4o",
+        title="LLM Model Selection",
+        description="This model should be OpenAI Model.",
+        alias="model",
+    )
+    graph_model: str = Field(
+        default="dall-e-3",
+        title="Graph Model Selection",
+        description="This model should be OpenAI Model.",
+        alias="graph_model",
+    )
     system_prompt: str = Field(default=SYSTEM_PROMPT)
 
     @computed_field
@@ -71,8 +83,22 @@ class LLMServices(Config):
             content.append({"type": "image_url", "image_url": {"url": image_base64}})
         return content
 
-    async def get_search_result(self, prompt: str) -> list[dict[str, Any]]:
-        config_dict = {"model": "gpt-4o-mini", "api_key": self.openai_api_key}
+    async def get_search_result(self, prompt: str) -> ChatCompletion:
+        client = AsyncOpenAI(api_key=self.pplx_api_key, base_url="https://api.perplexity.ai")
+        response = await client.chat.completions.create(
+            model="llama-3.1-sonar-large-128k-online",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an artificial intelligence assistant and you need to engage in a helpful, detailed, polite conversation with a user.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+        )
+        return response
+
+    async def _get_search_result(self, prompt: str) -> list[dict[str, Any]]:
+        config_dict = {"model": self.llm_model, "api_key": self.openai_api_key}
         llm_config = await self._get_llm_config(config_dict=config_dict)
 
         user_proxy = UserProxyAgent(
@@ -99,7 +125,7 @@ class LLMServices(Config):
     async def get_dalle_image(self, prompt: str) -> ImagesResponse:
         response = await self.client.images.generate(
             prompt=prompt,
-            model="dall-e-3",
+            model=self.graph_model,
             quality="hd",
             response_format="url",
             size="1024x1024",
@@ -112,7 +138,7 @@ class LLMServices(Config):
     ) -> ChatCompletion:
         content = await self.prepare_content(prompt, image_urls)
         completion = self.client.chat.completions.create(
-            model="gpt-4o",
+            model=self.llm_model,
             messages=[
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": content},
@@ -125,7 +151,7 @@ class LLMServices(Config):
     ) -> AsyncGenerator[ChatCompletionChunk, None]:
         content = await self.prepare_content(prompt, image_urls)
         completion: AsyncStream[ChatCompletionChunk] = self.client.chat.completions.create(
-            model="gpt-4o",
+            model=self.llm_model,
             messages=[
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": content},

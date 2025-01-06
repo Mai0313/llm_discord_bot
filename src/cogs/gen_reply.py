@@ -35,11 +35,11 @@ class ReplyGeneratorCogs(commands.Cog):
     @commands.command()
     async def search(self, ctx: commands.Context, *, prompt: str) -> None:
         response = await self.llm_services.get_search_result(prompt=prompt)
-        await ctx.send(content=response[-1]["content"])
+        await ctx.send(content=response.choices[0].message.content)
 
     @commands.command()
     async def graph(self, ctx: commands.Context, *, prompt: str) -> None:
-        msg = await ctx.send("正在生成圖片...")
+        msg = await ctx.send(content="正在生成圖片...")
         try:
             response = await self.llm_services.get_dalle_image(prompt=prompt)
             await msg.edit(content=f"{ctx.author.mention}\n{response.data[0].url}")
@@ -57,7 +57,7 @@ class ReplyGeneratorCogs(commands.Cog):
         """解釋回復的消息"""
         try:
             if not ctx.message.reference:
-                await ctx.send("請回復某條消息以使用此指令。")
+                await ctx.send(content="請回復某條消息以使用此指令。")
                 return
 
             # 獲取被回復的消息
@@ -78,7 +78,7 @@ class ReplyGeneratorCogs(commands.Cog):
     @commands.command()
     async def oais(self, ctx: commands.Context, *, prompt: str) -> None:
         attachments = await self._get_attachment_list(message=ctx.message)
-        msg = await ctx.send("生成中...")  # 初始化訊息
+        msg = await ctx.send(content="生成中...")  # 初始化訊息
         accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容，初始包括用戶標記
         buffer = ""  # 緩衝區，用於累積小段文字
         update_interval = 1

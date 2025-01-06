@@ -11,7 +11,7 @@ def get_aoai_response(api_key: str, question: str) -> str:
         azure_deployment="aide-gpt-4o",
         azure_endpoint="https://aideopenaieastus.openai.azure.com",
     )
-    completion = client.chat.completions.create(
+    response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
             {
@@ -21,7 +21,7 @@ def get_aoai_response(api_key: str, question: str) -> str:
             {"role": "user", "content": question},
         ],
     )
-    return completion.choices[0].message
+    return response.choices[0].message
 
 
 if __name__ == "__main__":
