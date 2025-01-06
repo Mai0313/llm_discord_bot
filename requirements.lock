@@ -53,7 +53,7 @@ exceptiongroup==1.2.2 ; python_full_version < '3.11'
     # via anyio
 executing==2.1.0
     # via logfire
-flaml==2.3.3
+flaml==2.2.0
     # via pyautogen
 frozenlist==1.5.0
     # via aiohttp

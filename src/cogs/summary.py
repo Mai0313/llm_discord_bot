@@ -118,14 +118,14 @@ class MessageFetcher(commands.Cog):
             for message in messages:
                 content = message.content
                 if message.embeds:
-                    content = "嵌入內容: " + ", ".join(
+                    embed_list = [
                         embed.description for embed in message.embeds if embed.description
-                    )
+                    ]
+                    content = "嵌入內容: " + ", ".join(embed_list)
                 elif message.attachments:
-                    content = "附件: " + ", ".join(
-                        attachment.url for attachment in message.attachments
-                    )
-                    image_urls = [attachment.url for attachment in message.attachments]
+                    attach_list = [attachment.url for attachment in message.attachments]
+                    content = "附件: " + ", ".join(attach_list)
+                    image_urls.extend(attach_list)
                 chat_history.append(f"{message.author.name}: {content}")
 
             # 反轉消息順序（確保顯示由舊到新）
@@ -159,7 +159,8 @@ class MessageFetcher(commands.Cog):
             image_urls = []
             base64_images = []
             if replied_message.attachments:
-                image_urls = [attachment.url for attachment in replied_message.attachments]
+                attach_list = [attachment.url for attachment in replied_message.attachments]
+                image_urls.extend(attach_list)
             if replied_message.embeds:
                 content = "嵌入內容: " + ", ".join(
                     embed.description for embed in replied_message.embeds if embed.description

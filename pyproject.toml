@@ -81,6 +81,7 @@ dependencies = [
     "psycopg2>=2.9.10",
     "redis>=5.2.1",
     "autogen>=0.6.1",
+    "flaml==2.2.0",
 ]
 dynamic = ["readme"]
 readme = "README.md"
