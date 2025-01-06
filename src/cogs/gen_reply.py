@@ -33,6 +33,11 @@ class ReplyGeneratorCogs(commands.Cog):
         return attachments
 
     @commands.command()
+    async def search(self, ctx: commands.Context, *, prompt: str) -> None:
+        response = await self.llm_services.get_search_result(prompt=prompt)
+        await ctx.send(content=response[-1]["content"])
+
+    @commands.command()
     async def graph(self, ctx: commands.Context, *, prompt: str) -> None:
         msg = await ctx.send("正在生成圖片...")
         try:

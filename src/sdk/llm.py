@@ -50,7 +50,7 @@ class LLMServices(Config):
         return client
 
     @classmethod
-    def _get_llm_config(cls, config_dict: dict[str, Any]) -> dict[str, Any]:
+    async def _get_llm_config(cls, config_dict: dict[str, Any]) -> dict[str, Any]:
         llm_config = {
             "timeout": 60,
             "temperature": 0,
@@ -71,9 +71,9 @@ class LLMServices(Config):
             content.append({"type": "image_url", "image_url": {"url": image_base64}})
         return content
 
-    def scrape_web(self, prompt: str) -> list[dict]:
+    async def get_search_result(self, prompt: str) -> list[dict[str, Any]]:
         config_dict = {"model": "gpt-4o-mini", "api_key": self.openai_api_key}
-        llm_config = self._get_llm_config(config_dict=config_dict)
+        llm_config = await self._get_llm_config(config_dict=config_dict)
 
         user_proxy = UserProxyAgent(
             "user_proxy",
@@ -86,13 +86,14 @@ class LLMServices(Config):
 
         web_agent = WebSurferAgent(
             name="WebSurferAgent",
-            system_message="You need to summarize the content, and add some personal thoughts like suggestions or comments.",
             llm_config=llm_config,
             summarizer_llm_config=llm_config,
             browser_config={"viewport_size": 4096, "bing_api_key": self.bing_api_key},
             silent=True,
         )
-        user_proxy.initiate_chat(web_agent, message=prompt, clear_history=False, silent=True)
+        await user_proxy.a_initiate_chat(
+            web_agent, message=prompt, clear_history=False, silent=True
+        )
         return user_proxy.chat_messages_for_summary(agent=web_agent)
 
     async def get_dalle_image(self, prompt: str) -> ImagesResponse:

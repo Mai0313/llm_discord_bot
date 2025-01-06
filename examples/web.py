@@ -14,7 +14,7 @@ def _get_llm_config(config_dict: dict[str, Any]) -> dict[str, Any]:
     return llm_config
 
 
-def scrape_web(api_key: str, bing_api_key: str, prompt: str) -> list[dict]:
+def get_search_result(api_key: str, bing_api_key: str, prompt: str) -> list[dict]:
     llm_config = _get_llm_config(config_dict={"model": "gpt-4o-mini", "api_key": api_key})
     summarizer_llm_config = _get_llm_config(
         config_dict={"model": "gpt-4o-mini", "api_key": api_key}
@@ -45,5 +45,5 @@ if __name__ == "__main__":
     api_key = "..."
     bing_api_key = "..."
     prompt = "幫我找一下新竹有沒有好吃的消夜"
-    result = scrape_web(api_key, bing_api_key, prompt)
+    result = get_search_result(api_key, bing_api_key, prompt)
     print(result[-1]["content"])
