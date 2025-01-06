@@ -63,7 +63,7 @@ class LLMServices(Config):
         response = await self.client.images.generate(
             prompt=prompt,
             model="dall-e-3",
-            quality="standard",
+            quality="hd",
             response_format="url",
             size="1024x1024",
             style="vivid",
