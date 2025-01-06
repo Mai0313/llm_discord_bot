@@ -114,6 +114,7 @@ class MessageFetcher(commands.Cog):
 
             # 總結消息內容
             chat_history = []
+            embed_list = []
             image_urls = []
             for message in messages:
                 content = message.content
@@ -123,9 +124,8 @@ class MessageFetcher(commands.Cog):
                     ]
                     content = "嵌入內容: " + ", ".join(embed_list)
                 elif message.attachments:
-                    attach_list = [attachment.url for attachment in message.attachments]
-                    content = "附件: " + ", ".join(attach_list)
-                    image_urls.extend(attach_list)
+                    image_urls = [attachment.url for attachment in message.attachments]
+                    content = "附件: " + ", ".join(image_urls)
                 chat_history.append(f"{message.author.name}: {content}")
 
             # 反轉消息順序（確保顯示由舊到新）
@@ -136,7 +136,9 @@ class MessageFetcher(commands.Cog):
                 history_count=history_count, chat_history_string=chat_history_string
             )
 
-            summary = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=image_urls)
+            attachments = [*image_urls, *embed_list]
+
+            summary = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
             summary = summary.choices[0].message.content
 
             await ctx.send(summary)
