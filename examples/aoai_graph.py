@@ -1,4 +1,4 @@
-from openai import AzureOpenAI, OpenAI
+from openai import AzureOpenAI
 from openai.types.images_response import ImagesResponse
 
 
@@ -18,6 +18,7 @@ def get_delle_image(api_key: str, prompt: str) -> ImagesResponse:
         style="vivid",
     )
     return response
+
 
 if __name__ == "__main__":
     api_key = "..."

@@ -39,7 +39,7 @@ class ReplyGeneratorCogs(commands.Cog):
             response = await self.llm_services.get_dalle_image(prompt=prompt)
             await msg.edit(content=f"{ctx.author.mention}\n{response.data[0].url}")
         except Exception as e:
-            await msg.edit(content=f"生成圖片時發生錯誤: {str(e)}")
+            await msg.edit(content=f"生成圖片時發生錯誤: {e!s}")
 
     @commands.command()
     async def oai(self, ctx: commands.Context, *, prompt: str) -> None:
