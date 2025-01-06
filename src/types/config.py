@@ -14,27 +14,11 @@ class Config(BaseSettings):
         frozen=False,
         deprecated=False,
     )
-    xai_api_key: str = Field(
-        ...,
-        description="The api key from x.ai for calling models.",
-        examples=["xai-..."],
-        alias="XAI_API_KEY",
-        frozen=False,
-        deprecated=False,
-    )
     openai_api_key: str = Field(
         ...,
         description="The api key from openai for calling models.",
         examples=["sk-proj-..."],
         alias="OPENAI_API_KEY",
-        frozen=False,
-        deprecated=False,
-    )
-    googleai_api_key: str = Field(
-        ...,
-        description="The api key from googleai for calling models.",
-        examples=["AIz..."],
-        alias="GOOGLEAI_API_KEY",
         frozen=False,
         deprecated=False,
     )
