@@ -4,6 +4,7 @@ from collections.abc import AsyncGenerator
 from openai import AsyncOpenAI
 from pydantic import Field, ConfigDict, computed_field
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
+from openai.types.images_response import ImagesResponse
 from autogen.agentchat.contrib.img_utils import get_pil_image, pil_to_data_uri
 
 from src.types.config import Config
@@ -57,6 +58,17 @@ class LLMServices(Config):
             image_base64 = pil_to_data_uri(image=image)
             content.append({"type": "image_url", "image_url": {"url": image_base64}})
         return content
+
+    async def get_dalle_image(self, prompt: str) -> ImagesResponse:
+        response = await self.client.images.generate(
+            prompt=prompt,
+            model="dall-e-3",
+            quality="standard",
+            response_format="url",
+            size="1024x1024",
+            style="vivid",
+        )
+        return response
 
     async def get_oai_reply(
         self, prompt: str, image_urls: Optional[list[str]] = None
