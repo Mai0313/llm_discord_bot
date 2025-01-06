@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     import discord
 
 
-SUMMARY_ROMPT = """
+SUMMARY_PROMPT = """
 請將總結的部分以發送者當作主要分類，並將他在這段期間內發送的內容總結。
 例如:
 
@@ -33,7 +33,7 @@ SUMMARY_MESSAGE = """
 class MessageFetcher(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.llm_services = LLMServices(system_prompt=SUMMARY_ROMPT)
+        self.llm_services = LLMServices(system_prompt=SUMMARY_PROMPT)
 
     @commands.command()
     async def sum(self, ctx: commands.Context, *, prompt: str) -> None:
