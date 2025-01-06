@@ -1,7 +1,5 @@
-import base64
 from typing import TYPE_CHECKING
 
-import aiohttp
 from discord.ext import commands
 
 from src.sdk.llm import LLMServices
@@ -31,17 +29,11 @@ SUMMARY_MESSAGE = """
 {chat_history_string}
 """
 
-EXPLANATION_PROMPT = """
-用戶看不懂該對話，請嘗試解釋該對話的內容。
-如果用戶沒有說話 只傳送圖片，請解釋圖片的內容。
-"""
-
 
 class MessageFetcher(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.llm_services = LLMServices(system_prompt=SUMMARY_ROMPT)
-        self.describe_services = LLMServices(system_prompt=EXPLANATION_PROMPT)
 
     @commands.command()
     async def sum(self, ctx: commands.Context, *, prompt: str) -> None:
@@ -142,50 +134,6 @@ class MessageFetcher(commands.Cog):
             summary = summary.choices[0].message.content
 
             await ctx.send(summary)
-        except Exception as e:
-            await ctx.send(f"發生錯誤：{e}")
-
-    @commands.command()
-    async def wtf(self, ctx: commands.Context) -> None:
-        """解釋回復的消息"""
-        try:
-            if not ctx.message.reference:
-                await ctx.send("請回復某條消息以使用此指令。")
-                return
-
-            # 獲取被回復的消息
-            replied_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-
-            # 處理消息內容
-            content = replied_message.content
-            image_urls = []
-            base64_images = []
-            if replied_message.attachments:
-                attach_list = [attachment.url for attachment in replied_message.attachments]
-                image_urls.extend(attach_list)
-            if replied_message.embeds:
-                content = "嵌入內容: " + ", ".join(
-                    embed.description for embed in replied_message.embeds if embed.description
-                )
-            if replied_message.stickers:
-                async with aiohttp.ClientSession() as session:
-                    for sticker in replied_message.stickers:
-                        async with session.get(sticker.url) as response:
-                            if response.status == 200:
-                                sticker_data = await response.read()
-                                base64_image = base64.b64encode(sticker_data).decode("utf-8")
-                                base64_images.append(f"data:image/png;base64,{base64_image}")
-
-            all_images = [*image_urls, *base64_images]
-
-            # 傳送內容給 LLM
-            prompt = f"{EXPLANATION_PROMPT}\n{content}"
-            explanation = await self.describe_services.get_oai_reply(
-                prompt=prompt, image_urls=all_images
-            )
-            explanation = explanation.choices[0].message.content
-
-            await ctx.send(explanation)
         except Exception as e:
             await ctx.send(f"發生錯誤：{e}")
 

@@ -2,6 +2,7 @@ import base64
 import asyncio
 
 import aiohttp
+from discord import Message
 from discord.ext import commands
 
 from src.sdk.llm import LLMServices
@@ -12,17 +13,17 @@ class ReplyGeneratorCogs(commands.Cog):
         self.bot = bot
         self.llm_services = LLMServices()
 
-    async def _get_attachment_list(self, ctx: commands.Context) -> list[str]:
+    async def _get_attachment_list(self, message: Message) -> list[str]:
         image_urls = []
         embed_list = []
         sticker_list = []
-        if ctx.message.attachments:
-            image_urls = [attachment.url for attachment in ctx.message.attachments]
-        if ctx.message.embeds:
-            embed_list = [embed.description for embed in ctx.message.embeds if embed.description]
-        if ctx.message.stickers:
+        if message.attachments:
+            image_urls = [attachment.url for attachment in message.attachments]
+        if message.embeds:
+            embed_list = [embed.description for embed in message.embeds if embed.description]
+        if message.stickers:
             async with aiohttp.ClientSession() as session:
-                for sticker in ctx.message.stickers:
+                for sticker in message.stickers:
                     async with session.get(sticker.url) as response:
                         if response.status == 200:
                             sticker_data = await response.read()
@@ -33,13 +34,36 @@ class ReplyGeneratorCogs(commands.Cog):
 
     @commands.command()
     async def oai(self, ctx: commands.Context, *, prompt: str) -> None:
-        attachments = await self._get_attachment_list(ctx)
+        attachments = await self._get_attachment_list(message=ctx.message)
         response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
         await ctx.send(f"{ctx.author.mention} {response.choices[0].message.content}")
 
     @commands.command()
+    async def wtf(self, ctx: commands.Context) -> None:
+        """解釋回復的消息"""
+        try:
+            if not ctx.message.reference:
+                await ctx.send("請回復某條消息以使用此指令。")
+                return
+
+            # 獲取被回復的消息
+            replied_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            attachments = await self._get_attachment_list(message=replied_message)
+
+            # 傳送內容給 LLM
+            prompt = f"用戶看不懂該對話，請嘗試解釋該對話的內容；如果用戶沒有說話 只傳送圖片，請解釋圖片的內容。\n{replied_message.content}"
+            explanation = await self.llm_services.get_oai_reply(
+                prompt=prompt, image_urls=attachments
+            )
+            explanation = explanation.choices[0].message.content
+
+            await ctx.send(explanation)
+        except Exception as e:
+            await ctx.send(f"發生錯誤：{e}")
+
+    @commands.command()
     async def oais(self, ctx: commands.Context, *, prompt: str) -> None:
-        attachments = await self._get_attachment_list(ctx)
+        attachments = await self._get_attachment_list(message=ctx.message)
         msg = await ctx.send("生成中...")  # 初始化訊息
         accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容，初始包括用戶標記
         buffer = ""  # 緩衝區，用於累積小段文字
