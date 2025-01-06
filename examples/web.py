@@ -14,7 +14,7 @@ def _get_llm_config(config_dict: dict[str, Any]) -> dict[str, Any]:
     return llm_config
 
 
-def scrape_web(api_key: str, bing_api_key: str, prompt: str) -> str:
+def scrape_web(api_key: str, bing_api_key: str, prompt: str) -> list[dict]:
     llm_config = _get_llm_config(config_dict={"model": "gpt-4o-mini", "api_key": api_key})
     summarizer_llm_config = _get_llm_config(
         config_dict={"model": "gpt-4o-mini", "api_key": api_key}

@@ -2,10 +2,12 @@ from typing import TYPE_CHECKING, Any, Optional
 from collections.abc import AsyncGenerator
 
 from openai import AsyncOpenAI
+from autogen import UserProxyAgent
 from pydantic import Field, ConfigDict, computed_field
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from openai.types.images_response import ImagesResponse
 from autogen.agentchat.contrib.img_utils import get_pil_image, pil_to_data_uri
+from autogen.agentchat.contrib.web_surfer import WebSurferAgent
 
 from src.types.config import Config
 
@@ -47,6 +49,16 @@ class LLMServices(Config):
         client = AsyncOpenAI(api_key=self.openai_api_key, base_url="https://api.openai.com/v1")
         return client
 
+    @classmethod
+    def _get_llm_config(cls, config_dict: dict[str, Any]) -> dict[str, Any]:
+        llm_config = {
+            "timeout": 60,
+            "temperature": 0,
+            "cache_seed": None,
+            "config_list": [config_dict],
+        }
+        return llm_config
+
     async def prepare_content(
         self, prompt: str, image_urls: Optional[list[str]] = None
     ) -> list[dict[str, Any]]:
@@ -58,6 +70,30 @@ class LLMServices(Config):
             image_base64 = pil_to_data_uri(image=image)
             content.append({"type": "image_url", "image_url": {"url": image_base64}})
         return content
+
+    def scrape_web(self, prompt: str) -> list[dict]:
+        config_dict = {"model": "gpt-4o-mini", "api_key": self.openai_api_key}
+        llm_config = self._get_llm_config(config_dict=config_dict)
+
+        user_proxy = UserProxyAgent(
+            "user_proxy",
+            human_input_mode="NEVER",
+            code_execution_config=False,
+            default_auto_reply="",
+            is_termination_msg=lambda x: True,
+            silent=True,
+        )
+
+        web_agent = WebSurferAgent(
+            name="WebSurferAgent",
+            system_message="You need to summarize the content, and add some personal thoughts like suggestions or comments.",
+            llm_config=llm_config,
+            summarizer_llm_config=llm_config,
+            browser_config={"viewport_size": 4096, "bing_api_key": self.bing_api_key},
+            silent=True,
+        )
+        user_proxy.initiate_chat(web_agent, message=prompt, clear_history=False, silent=True)
+        return user_proxy.chat_messages_for_summary(agent=web_agent)
 
     async def get_dalle_image(self, prompt: str) -> ImagesResponse:
         response = await self.client.images.generate(
