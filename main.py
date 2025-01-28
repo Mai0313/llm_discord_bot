@@ -1,5 +1,4 @@
 import os
-from typing import Union
 import logging
 from pathlib import Path
 import secrets
@@ -92,13 +91,11 @@ class DiscordBot(commands.Bot):
     async def on_command_error(
         self,
         context: commands.Context,
-        error: Union[
-            commands.CommandOnCooldown,
-            commands.NotOwner,
-            commands.MissingPermissions,
-            commands.BotMissingPermissions,
-            commands.MissingRequiredArgument,
-        ],
+        error: commands.CommandOnCooldown
+        | commands.NotOwner
+        | commands.MissingPermissions
+        | commands.BotMissingPermissions
+        | commands.MissingRequiredArgument,
     ) -> None:
         """The code in this event is executed every time a normal valid command catches an error.
 

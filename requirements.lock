@@ -200,7 +200,6 @@ tqdm==4.67.1
     # via openai
 typing-extensions==4.12.2
     # via anyio
-    # via asyncer
     # via logfire
     # via multidict
     # via openai

@@ -158,15 +158,6 @@ idna==3.10
     # via requests
     # via yarl
 importlib-metadata==8.5.0
-    # via jupyter-client
-    # via jupyter-lsp
-    # via jupyterlab
-    # via jupyterlab-server
-    # via markdown
-    # via mkdocs
-    # via mkdocs-get-deps
-    # via mkdocstrings
-    # via nbconvert
     # via opentelemetry-api
 iniconfig==2.0.0
     # via pytest
@@ -540,17 +531,13 @@ types-python-dateutil==2.9.0.20241206
 typing-extensions==4.12.2
     # via anyio
     # via async-lru
-    # via asyncer
     # via griffe-typingdoc
-    # via ipython
     # via logfire
-    # via mkdocstrings
     # via multidict
     # via openai
     # via opentelemetry-sdk
     # via pydantic
     # via pydantic-core
-    # via python-json-logger
     # via rich
     # via sqlalchemy
 tzdata==2024.2
