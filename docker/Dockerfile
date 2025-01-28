@@ -1,5 +1,5 @@
 ARG PYTHON_VERSION=3.10.14
-FROM python:${PYTHON_VERSION}-slim AS builder
+FROM python:${PYTHON_VERSION} AS builder
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 LABEL maintainer="Wei Lee <mai@mai0313.com>" \
