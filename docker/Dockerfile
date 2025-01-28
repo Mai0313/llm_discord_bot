@@ -1,5 +1,6 @@
 ARG PYTHON_VERSION=3.10.14
-FROM python:${PYTHON_VERSION} AS builder
+FROM python:${PYTHON_VERSION}-slim AS builder
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 LABEL maintainer="Wei Lee <mai@mai0313.com>" \
     org.label-schema.name="llm_discord_bot" \
@@ -17,21 +18,24 @@ RUN apt-get -y update && \
 
 # Install python packages
 COPY ./docker/mirror/pip.conf /root/.pip/pip.conf
+COPY ./pyproject.toml ./pyproject.toml
 RUN git config --global http.sslVerify false && \
     python -m pip install --upgrade pip
 
 ########################################################################################
 
 FROM builder AS base
-WORKDIR /base_env
-COPY ./requirements.lock ./requirements.lock
-RUN pip install -r ./requirements.lock && \
+WORKDIR /app
+# RUN uv sync --frozen --no-dev && uv cache clean
+RUN uv export --no-dev --no-hashes --output-file ./requirements.lock && \
+    pip install -r ./requirements.lock && \
     pip cache purge
 
 FROM builder AS dev
-WORKDIR /base_env
-COPY ./requirements-dev.lock ./requirements-dev.lock
-RUN pip install -r ./requirements-dev.lock && \
+WORKDIR /app
+# RUN uv sync --frozen && uv cache clean
+RUN uv export --no-hashes --output-file ./requirements-dev.lock && \
+    pip install -r ./requirements-dev.lock && \
     pip cache purge
 
 ########################################################################################
@@ -39,3 +43,8 @@ RUN pip install -r ./requirements-dev.lock && \
 FROM base AS prod
 WORKDIR /app
 COPY . .
+
+FROM dev AS docs
+WORKDIR /app
+COPY . .
+RUN make gen-docs

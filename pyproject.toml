@@ -55,7 +55,7 @@ data_file = './.github/reports/.coverage'
 omit = ["./src/ameba/*"]
 
 # ================== #
-#      Rye/uv        #
+#        uv          #
 # ================== #
 
 [project]
@@ -66,22 +66,20 @@ authors = [
     { name = "Wei", email = "mai@mai0313.com" },
 ]
 dependencies = [
-    "pydantic<=2.9.2",
+    "autogen>=0.7.2",
     "discord-py>=2.4.0",
-    "pillow>=11.0.0",
-    "requests>=2.32.3",
-    "logfire>=2.3.0",
-    "openai>=1.54.4",
-    "pydantic-settings>=2.6.1",
-    "autorootcwd>=1.0.1",
+    "logfire>=3.4.0",
+    "openai>=1.60.2",
+    "opencv-python>=4.11.0.86",
     "pandas>=2.2.3",
-    "sqlalchemy>=2.0.36",
-    "psycopg2-binary>=2.9.10",
-    "opencv-python>=4.10.0.84",
+    "pillow>=11.1.0",
     "psycopg2>=2.9.10",
+    "psycopg2-binary>=2.9.10",
+    "pydantic>=2.10.6",
+    "pydantic-settings>=2.7.1",
     "redis>=5.2.1",
-    "autogen[websurfer]>=0.6.1",
-    "flaml==2.2.0",
+    "requests>=2.32.3",
+    "sqlalchemy>=2.0.37",
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
@@ -91,67 +89,27 @@ license = { text = "MIT" }
 Homepage = "https://github.com/Mai0313/llm_discord_bot"
 Repository = "https://github.com/Mai0313/llm_discord_bot"
 
-[tool.rye.scripts]
-
-api = { cmd = "python ./api.py" }
-main = { cmd = "python ./main.py" }
-
-# Documentation
-"docs:gen" = "make gen-docs"
-"docs:deploy" = "mkdocs gh-deploy --force --clean"
-"docs:run" = "mkdocs serve"
-
-gen = { chain = ["docs:gen", "docs:deploy"] }
-docs = { chain = ["docs:gen", "docs:run"] }
-
-
-[[tool.rye.sources]]
-name = "default"
-url = "https://pypi.org/simple"
-# url = "http://10.9.16.152/simple"
-
-# [[tool.rye.sources]]
-# name = "pytorch"
-# url = "https://download.pytorch.org/whl"
-
-# [[tool.rye.proxy]]
-# http = "http://mtkdrone01.mediatek.inc:23984"
-# https = "http://mtkdrone01.mediatek.inc:23984"
-
-[[tool.uv.index]]
-name = "default"
-url = "https://pypi.org/simple"
-default = true
-
-# [[tool.uv.index]]
-# name = "pytorch"
-# url = "https://download.pytorch.org/whl"
-# default = false
-
-[tool.rye]
-managed = true
-virtual = true
-universal = true
-dev-dependencies = [
-    "notebook>=7.3.1",
-    "ipykernel>=6.29.5",
-    "ipywidgets>=8.1.5",
-    "pre-commit>=4.0.1",
-    "pytest>=8.3.4",
-    "pytest-cov>=6.0.0",
-    "pytest-xdist>=3.6.1",
-    "pytest-asyncio==0.23.8",
-    "genbadge[all]>=1.1.1",
-    "mkdocs-material>=9.5.47",
-    "mkdocstrings-python>=1.12.2",
-    "fire>=0.7.0",
-    "rich>=13.9.4",
-    "griffe-typingdoc>=0.2.7",
-]
-
 [build-system]
 requires = ["hatchling", "hatch-fancy-pypi-readme"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "anyio>=4.8.0",
+    "fire>=0.7.0",
+    "genbadge[all]>=1.1.1",
+    "griffe-typingdoc>=0.2.7",
+    "ipykernel>=6.29.5",
+    "ipywidgets>=8.1.5",
+    "mkdocs-material>=9.5.49",
+    "mkdocstrings[python]>=0.27.0",
+    "pre-commit>=4.0.1",
+    "pytest>=8.3.4",
+    "pytest-asyncio==0.23.8",
+    "pytest-cov>=6.0.0",
+    "pytest-xdist>=3.6.1",
+    "rich>=13.9.4",
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -209,6 +167,52 @@ path = "README.md"
 # replace relative links with absolute links
 pattern = '\[(.+?)\]\(((?!https?://)\S+?)\)'
 replacement = '[\1](https://github.com/openai/openai-python/tree/main/\g<2>)'
+
+[tool.rye.scripts]
+api = { cmd = "python ./api.py" }
+main = { cmd = "python ./main.py" }
+
+# Documentation
+"docs:gen" = "make gen-docs"
+"docs:deploy" = "mkdocs gh-deploy --force --clean"
+"docs:run" = "mkdocs serve"
+
+gen = { chain = ["docs:gen", "docs:deploy"] }
+docs = { chain = ["docs:gen", "docs:run"] }
+
+# https://docs.astral.sh/uv/reference/settings
+[tool.uv]
+managed = true
+package = false
+check-url = "https://test.pypi.org/simple"
+publish-url = "https://test.pypi.org/legacy/"
+compile-bytecode = true
+# concurrent-builds = 4
+# concurrent-downloads = 4
+# concurrent-installs = 4
+index-strategy = "unsafe-best-match"
+link-mode = "copy"
+native-tls = false
+no-binary = false
+offline = false
+prerelease = "if-necessary"
+preview = true
+
+# https://docs.astral.sh/uv/reference/settings/#index
+[[tool.uv.index]]
+name = "default"
+url = "https://pypi.org/simple"
+
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu118"
+# If you set it to `true`, it will be moved to the end of the prioritized list.
+# In other words, it will search pypi first, then here.
+default = true
+
+[tool.uv.pip]
+annotation-style = "line"
+output-file = "requirements.txt"
 
 # ================== #
 #        RUFF        #
@@ -322,7 +326,6 @@ select = [
     # "G",  # flake8-logging-format
     "INP",  # flake8-no-pep420
     # "PIE",  # flake8-pie
-    "T20",  # Remove Print Out
     "T20",  # flake8-print
     "PYI",  # flake8-pyi
     "PT",  # flake8-pytest-style
@@ -333,7 +336,7 @@ select = [
     "SLOT",  # flake8-slots
     "SIM",  # flake8-simplify
     "TID",  # flake8-tidy-imports
-    "TCH",  # flake8-type-checking
+    "TC",  # flake8-type-checking
     "INT",  # flake8-gettext
     # "ARG",  # flake8-unused-arguments
     # "PTH",  # flake8-use-pathlib
@@ -475,7 +478,7 @@ console_colors = "auto"
 console_span_style = "show-parents"
 console_include_timestamps = true
 console_verbose = true
-console_min_log_level = "trace"
+console_min_log_level = "debug"
 show_summary = true
 data_dir = "./.cache/.logfire"
 # base_url = ""

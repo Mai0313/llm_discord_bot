@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_package:
-    name: Build Package by Rye
+    name: Build Package by uv
     runs-on: ubuntu-latest
     container: catthehacker/ubuntu:act-20.04
 
@@ -37,16 +37,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           submodules: 'recursive'
 
-      - name: Setup Rye
-        uses: mai0313/setup-rye@master
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
         with:
-          version: 'latest' # Optional, default is latest
-          toolchain_version: '3.10' # Optional, default is 3.10
-          python_version: '3.10' # Optional, default is 3.10
-          use-uv: 'true' # Optional, default is true
-          pypi_source: 'https://pypi.org/simple' # Optional
-          http_proxy: ${{ secrets.HTTP_PROXY }} # Optional
-          https_proxy: ${{ secrets.HTTPS_PROXY }} # Optional
+          version: "latest"
+          python-version: "3.10"
+          pyproject-file: "pyproject.toml"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get the version
         id: metadata
@@ -65,9 +62,8 @@ jobs:
 
       - name: Build Package
         run: |
-          sed -i 's/virtual = true/virtual = false/' pyproject.toml
-          rye version $VERSION
-          rye build --clean
+          uvx --from=toml-cli toml set --toml-path=pyproject.toml project.version $VERSION
+          uv build
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4.3.3

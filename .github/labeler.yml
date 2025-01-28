@@ -41,6 +41,7 @@ chore:
 dependencies:
   - changed-files:
     - any-glob-to-any-file:
+      - "uv.lock"                   # uv lock file
       - "requirements.txt"          # Python dependencies
       - "requirements.lock"         # Rye lock file
       - "requirements-dev.lock"     # Rye dev lock file

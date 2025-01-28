@@ -19,16 +19,16 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Rye
-        uses: mai0313/setup-rye@v1.0.3
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
         with:
-          version: 'latest' # Optional, default is latest
-          toolchain_version: '3.10' # Optional, default is 3.10
-          python_version: '3.10' # Optional, default is 3.10
-          use-uv: 'true' # Optional, default is true
-          pypi_source: 'https://pypi.org/simple' # Optional
+          version: "latest"
+          python-version: "3.10"
+          pyproject-file: "pyproject.toml"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy docs
         run: |
-          rye sync
-          rye run gen
+          uv sync
+          uv run make gen-docs
+          uv run mkdocs gh-deploy --force --clean

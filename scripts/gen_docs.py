@@ -29,9 +29,9 @@ class DocsGenerator(BaseModel):
         python ./scripts/gen_docs.py --source ./src --output ./docs/Reference --exclude .venv gen_docs
         ```
 
-    Using Rye:
+    Using uv:
         ```bash
-        rye run gen
+        uv run gen
         ```
     """
 

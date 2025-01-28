@@ -21,7 +21,7 @@ jobs:
         os:
           - ubuntu-latest
         python-version:
-          - "3.9"
+          # - "3.9"
           - "3.10"
           - "3.11"
           - "3.12"
@@ -39,25 +39,22 @@ jobs:
           fetch-depth: 1
           submodules: 'recursive'
 
-      - name: Setup Rye
-        uses: mai0313/setup-rye@master
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
         with:
-          version: 'latest' # Optional, default is latest
-          toolchain_version: ${{ matrix.python-version }} # Optional, default is 3.10
-          python_version: ${{ matrix.python-version }} # Optional, default is 3.10
-          use-uv: 'true' # Optional, default is true
-          pypi_source: 'https://pypi.org/simple' # Optional
-          # http_proxy: ${{ secrets.HTTP_PROXY }} # Optional
-          # https_proxy: ${{ secrets.HTTPS_PROXY }} # Optional
+          version: "latest"
+          python-version: ${{ matrix.python-version }}
+          pyproject-file: "pyproject.toml"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: |
-          rye pin ${{ matrix.python-version }}
-          rye sync
+          uv python pin ${{ matrix.python-version }}
+          uv sync
 
       - name: List dependencies
         run: |
-          rye list
+          uv pip list
 
       - name: Check for tests
         id: check_tests
@@ -73,4 +70,4 @@ jobs:
       - name: Run pytest
         if: steps.check_tests.outputs.has_tests == 'true'
         run: |
-          pytest -vv
+          uv run pytest -vv
