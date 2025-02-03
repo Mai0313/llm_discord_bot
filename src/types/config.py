@@ -2,7 +2,7 @@ import logfire
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-logfire.configure()
+logfire.configure(send_to_logfire=False)
 
 
 class Config(BaseSettings):
