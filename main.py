@@ -8,9 +8,6 @@ import discord
 import logfire
 from discord.ext import tasks, commands
 
-discord_invite_url = (
-    "https://discord.com/oauth2/authorize?client_id={client_id}&permissions=8&scope=bot"
-)
 logfire.configure()
 logging.getLogger("sqlalchemy.engine.Engine").disabled = True
 
@@ -25,7 +22,9 @@ class DiscordBot(commands.Bot):
 
     async def on_ready(self) -> None:
         app_info = await self.application_info()
-        invite_url = discord_invite_url.format(client_id=app_info.id)
+        invite_url = (
+            f"https://discord.com/oauth2/authorize?client_id={app_info.id}&permissions=8&scope=bot"
+        )
 
         logfire.info("Bot Started", bot_name=self.user.name, bot_id=self.user.id)
         logfire.info(f"Invite Link: {invite_url}")
