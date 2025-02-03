@@ -22,14 +22,6 @@ class Config(BaseSettings):
         frozen=False,
         deprecated=False,
     )
-    huggingface_api_token: str = Field(
-        ...,
-        description="The api token from huggingface for calling models.",
-        examples=["hf_zdZ..."],
-        alias="HUGGINGFACE_API_TOKEN",
-        frozen=False,
-        deprecated=False,
-    )
     discord_bot_token: str = Field(
         ...,
         description="The token from discord for calling models.",

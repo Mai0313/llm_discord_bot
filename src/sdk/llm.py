@@ -2,12 +2,10 @@ from typing import TYPE_CHECKING, Any, Optional
 from collections.abc import AsyncGenerator
 
 from openai import AsyncOpenAI
-from autogen import UserProxyAgent
 from pydantic import Field, ConfigDict, computed_field
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from openai.types.images_response import ImagesResponse
 from autogen.agentchat.contrib.img_utils import get_pil_image, pil_to_data_uri
-from autogen.agentchat.contrib.web_surfer import WebSurferAgent
 
 from src.types.config import Config
 
