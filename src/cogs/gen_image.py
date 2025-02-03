@@ -6,6 +6,7 @@ import httpx
 import discord
 from discord.ext import commands
 
+from src.sdk.llm import LLMServices
 from src.types.config import Config
 
 
@@ -13,6 +14,16 @@ class ImageGeneratorCogs(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.config = Config()
+        self.llm_services = LLMServices()
+
+    @commands.command()
+    async def graph(self, ctx: commands.Context, *, prompt: str) -> None:
+        msg = await ctx.send(content="正在生成圖片...")
+        try:
+            response = await self.llm_services.get_dalle_image(prompt=prompt)
+            await msg.edit(content=f"{ctx.author.mention}\n{response.data[0].url}")
+        except Exception as e:
+            await msg.edit(content=f"生成圖片時發生錯誤: {e!s}")
 
     async def gen_image(self, prompt: str) -> bytes:
         async with httpx.AsyncClient(

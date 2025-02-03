@@ -41,15 +41,6 @@ class ReplyGeneratorCogs(commands.Cog):
             await ctx.send(content=f"搜尋時發生錯誤: {e!s}")
 
     @commands.command()
-    async def graph(self, ctx: commands.Context, *, prompt: str) -> None:
-        msg = await ctx.send(content="正在生成圖片...")
-        try:
-            response = await self.llm_services.get_dalle_image(prompt=prompt)
-            await msg.edit(content=f"{ctx.author.mention}\n{response.data[0].url}")
-        except Exception as e:
-            await msg.edit(content=f"生成圖片時發生錯誤: {e!s}")
-
-    @commands.command()
     async def oai(self, ctx: commands.Context, *, prompt: str) -> None:
         try:
             attachments = await self._get_attachment_list(message=ctx.message)
