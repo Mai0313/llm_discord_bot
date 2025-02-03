@@ -97,31 +97,6 @@ class LLMServices(Config):
         )
         return response
 
-    async def _get_search_result(self, prompt: str) -> list[dict[str, Any]]:
-        config_dict = {"model": self.llm_model, "api_key": self.openai_api_key}
-        llm_config = await self._get_llm_config(config_dict=config_dict)
-
-        user_proxy = UserProxyAgent(
-            "user_proxy",
-            human_input_mode="NEVER",
-            code_execution_config=False,
-            default_auto_reply="",
-            is_termination_msg=lambda x: True,
-            silent=True,
-        )
-
-        web_agent = WebSurferAgent(
-            name="WebSurferAgent",
-            llm_config=llm_config,
-            summarizer_llm_config=llm_config,
-            browser_config={"viewport_size": 4096, "bing_api_key": self.bing_api_key},
-            silent=True,
-        )
-        await user_proxy.a_initiate_chat(
-            web_agent, message=prompt, clear_history=False, silent=True
-        )
-        return user_proxy.chat_messages_for_summary(agent=web_agent)
-
     async def get_dalle_image(self, prompt: str) -> ImagesResponse:
         response = await self.client.images.generate(
             prompt=prompt,

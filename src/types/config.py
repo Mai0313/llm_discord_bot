@@ -22,14 +22,6 @@ class Config(BaseSettings):
         frozen=False,
         deprecated=False,
     )
-    bing_api_key: str = Field(
-        ...,
-        description="The api key from bing for calling models.",
-        examples=["a9d67..."],
-        alias="BING_API_KEY",
-        frozen=False,
-        deprecated=False,
-    )
     huggingface_api_token: str = Field(
         ...,
         description="The api token from huggingface for calling models.",
