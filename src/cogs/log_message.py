@@ -29,7 +29,6 @@ class LogMessageCogs(commands.Cog):
         # 產生今日資料夾，作為附件和貼圖的存放路徑
         today = datetime.date.today().isoformat()
         base_dir = Path("data") / today / channel_name
-        base_dir.mkdir(parents=True, exist_ok=True)
 
         # 保存附件與貼圖
         attachment_paths = await self._save_attachments(message.attachments, base_dir)
@@ -74,6 +73,7 @@ class LogMessageCogs(commands.Cog):
         saved_paths = []
         for attachment in attachments:
             filepath = base_dir / attachment.filename
+            base_dir.mkdir(parents=True, exist_ok=True)
             await attachment.save(filepath)
             saved_paths.append(str(filepath))
         return saved_paths
@@ -95,6 +95,7 @@ class LogMessageCogs(commands.Cog):
         for sticker in stickers:
             filepath = base_dir / f"sticker_{sticker.id}.png"
             try:
+                base_dir.mkdir(parents=True, exist_ok=True)
                 await sticker.save(filepath)
                 saved_paths.append(str(filepath))
             except discord.NotFound:
