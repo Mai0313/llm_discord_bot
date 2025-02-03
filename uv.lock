@@ -1085,7 +1085,7 @@ wheels = [
 ]
 
 [[package]]
-name = "llm-discord-bot"
+name = "llmdcbot"
 version = "1.0.0"
 source = { virtual = "." }
 dependencies = [
