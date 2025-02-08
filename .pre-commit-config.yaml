@@ -13,7 +13,7 @@ default_stages:
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.9.3
+    rev: v0.9.5
     hooks:
       - id: ruff
         types_or: [ python, pyi, jupyter ]
@@ -51,7 +51,7 @@ repos:
 
   # md formatting
   - repo: https://github.com/executablebooks/mdformat
-    rev: 0.7.21
+    rev: 0.7.22
     hooks:
       - id: mdformat
         args:
@@ -68,7 +68,7 @@ repos:
       - id: nbstripout
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.0
+    rev: v2.4.1
     hooks:
       - id: codespell
         additional_dependencies:
@@ -82,7 +82,7 @@ repos:
   #       entry: bash -c 'if command -v code2flow >/dev/null 2>&1; then code2flow **/**/*.py -o ./.github/code2flow/flow.png; else echo "code2flow not installed, skipping"; fi'
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.14.1
+    rev: v1.15.0
     hooks:
       - id: mypy
         additional_dependencies:
