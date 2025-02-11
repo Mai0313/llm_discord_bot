@@ -111,7 +111,7 @@ class RedisConfig(BaseSettings):
     def save(self, key: str, data: dict[str, str]) -> dict[str, str]:
         # 使用 hset 將 data 字典保存到指定的 hash key 中
         # data 格式例如: {"field1": "value1", "field2": "value2"}
-        self.redis_instance.hset(key, mapping=data)  # type: ignore[arg-type]
+        self.redis_instance.hset(key, mapping=data)
         return data
 
     def load(self, key: str) -> dict[str, str]:

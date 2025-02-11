@@ -1,5 +1,5 @@
 from discord.ext import commands
-from autogen.agents import WebSurferAgent
+from autogen.agents.experimental.websurfer import WebSurferAgent
 
 from src.sdk.llm import LLMServices
 
@@ -31,7 +31,9 @@ class WebSearchCogs(commands.Cog):
             web_tool="browser_use",
             web_tool_kwargs=browser_use_browser_config,
         )
-        ag2_news_result = web_researcher.run(message=prompt, tools=web_researcher.tools, user_input=False)
+        ag2_news_result = web_researcher.run(
+            message=prompt, tools=web_researcher.tools, user_input=False
+        )
         ctx.send(content=ag2_news_result.summary)
 
 
