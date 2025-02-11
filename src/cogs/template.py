@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 
@@ -19,7 +20,7 @@ class TemplateCogs(commands.Cog):
         # # 繼續處理其他命令
         # await self.bot.process_commands(message)
 
-    @commands.command()
+    @app_commands.command(name="ping", description="Ping Pong!")
     async def ping(self, ctx: commands.Context) -> None:
         await ctx.send("Pong!")
 

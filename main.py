@@ -8,7 +8,7 @@ import discord
 import logfire
 from discord.ext import tasks, commands
 
-logfire.configure(send_to_logfire=False)
+logfire.configure(send_to_logfire=False, scrubbing=False)
 logging.getLogger("sqlalchemy.engine.Engine").disabled = True
 
 
