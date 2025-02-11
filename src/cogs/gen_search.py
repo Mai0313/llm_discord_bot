@@ -1,5 +1,5 @@
 from discord.ext import commands
-from autogen.agents.experimental.websurfer import WebSurferAgent
+from autogen.agents import WebSurferAgent
 
 from src.sdk.llm import LLMServices
 

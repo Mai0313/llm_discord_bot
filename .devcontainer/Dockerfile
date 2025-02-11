@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.10.14
+ARG PYTHON_VERSION=3.11
 FROM python:${PYTHON_VERSION} AS builder
 
 LABEL maintainer="Wei Lee <mai@mai0313.com>" \
