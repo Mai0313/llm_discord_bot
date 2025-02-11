@@ -37,7 +37,7 @@ class ReplyGeneratorCogs(commands.Cog):
     @commands.command(
         name="oai", description="This command will generate a reply based on the prompt given."
     )
-    async def oai_command(self, ctx: commands.Context, *, prompt: str) -> None:
+    async def oai(self, ctx: commands.Context, *, prompt: str) -> None:
         try:
             attachments = await self._get_attachment_list(message=ctx.message)
             response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
@@ -62,7 +62,7 @@ class ReplyGeneratorCogs(commands.Cog):
         name="oais",
         description="This command will generate a reply based on the prompt given and show the progress.",
     )
-    async def oais_command(self, ctx: commands.Context, *, prompt: str) -> None:
+    async def oais(self, ctx: commands.Context, *, prompt: str) -> None:
         attachments = await self._get_attachment_list(message=ctx.message)
         msg = await ctx.send(content="生成中...")  # 初始化訊息
         accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容，初始包括用戶標記
