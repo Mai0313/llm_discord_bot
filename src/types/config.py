@@ -1,3 +1,5 @@
+from typing import Optional
+
 import logfire
 from pydantic import Field
 from pydantic_settings import BaseSettings
@@ -27,6 +29,14 @@ class Config(BaseSettings):
         description="The token from discord for calling models.",
         examples=["MTEz-..."],
         alias="DISCORD_BOT_TOKEN",
+        frozen=False,
+        deprecated=False,
+    )
+    discord_test_server_id: Optional[int] = Field(
+        default=None,
+        description="The id of the test server for testing the bot.",
+        examples=[1143289646042853487],
+        alias="DISCORD_TEST_SERVER_ID",
         frozen=False,
         deprecated=False,
     )

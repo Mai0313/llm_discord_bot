@@ -7,6 +7,7 @@ import platform
 import discord
 import logfire
 from discord.ext import tasks, commands
+from src.types.config import Config
 
 logfire.configure(send_to_logfire=False, scrubbing=False)
 logging.getLogger("sqlalchemy.engine.Engine").disabled = True
@@ -19,6 +20,7 @@ class DiscordBot(commands.Bot):
             intents=discord.Intents.all(),  # 啟用所有 Intents
             help_command=None,
         )
+        self.config = Config()
 
     async def on_ready(self) -> None:
         app_info = await self.application_info()
@@ -58,7 +60,10 @@ class DiscordBot(commands.Bot):
             system=f"{platform.system()} {platform.release()} ({os.name})",
         )
         await self.load_cogs()
-        await self.tree.sync()
+        guild = None
+        if self.config.discord_test_server_id:
+            guild = self.get_guild(self.config.discord_test_server_id)
+        await self.tree.sync(guild=guild)
         self.status_task.start()
 
     async def on_message(self, message: discord.Message) -> None:
@@ -150,8 +155,6 @@ class DiscordBot(commands.Bot):
 
 
 if __name__ == "__main__":
-    from src.types.config import Config
-
     config = Config()
     bot = DiscordBot()
     bot.run(token=config.discord_bot_token)
