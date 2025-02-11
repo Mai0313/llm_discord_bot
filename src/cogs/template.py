@@ -21,7 +21,7 @@ class TemplateCogs(commands.Cog):
         # await self.bot.process_commands(message)
 
     @commands.command(name="ping", description="Ping Pong!")
-    async def ping_command(self, ctx: commands.Context) -> None:
+    async def ping(self, ctx: commands.Context) -> None:
         await ctx.send("Pong!")
 
     @app_commands.command(name="ping", description="Ping Pong!", nsfw=False)
