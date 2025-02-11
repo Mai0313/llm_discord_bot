@@ -1,7 +1,11 @@
+import os
+
 from discord.ext import commands
 from autogen.agents import WebSurferAgent
 
 from src.sdk.llm import LLMServices
+
+os.environ["ANONYMIZED_TELEMETRY"] = "false"
 
 
 class WebSearchCogs(commands.Cog):
