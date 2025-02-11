@@ -163,7 +163,6 @@ cython_debug/
 docker-compose.override.yaml
 
 /.github/reports/
-/logs/
 
 # Generated Docs
 /docs/Reference

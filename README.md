@@ -9,10 +9,10 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![tests](https://github.com/Mai0313/llm_discord_bot/actions/workflows/test.yml/badge.svg)](https://github.com/Mai0313/llm_discord_bot/actions/workflows/test.yml)
 [![code-quality](https://github.com/Mai0313/llm_discord_bot/actions/workflows/code-quality-check.yml/badge.svg)](https://github.com/Mai0313/llm_discord_bot/actions/workflows/code-quality-check.yml)
-[![codecov](https://codecov.io/gh/Mai0313/template/branch/master/graph/badge.svg)](https://codecov.io/gh/Mai0313/template)
+[![codecov](https://codecov.io/gh/Mai0313/llm_discord_bot/branch/master/graph/badge.svg)](https://codecov.io/gh/Mai0313/llm_discord_bot)
 [![license](https://img.shields.io/badge/License-MIT-green.svg?labelColor=gray)](https://github.com/Mai0313/llm_discord_bot/tree/master?tab=License-1-ov-file)
 [![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Mai0313/llm_discord_bot/pulls)
-[![contributors](https://img.shields.io/github/contributors/Mai0313/template.svg)](https://github.com/Mai0313/llm_discord_bot/graphs/contributors)
+[![contributors](https://img.shields.io/github/contributors/Mai0313/llm_discord_bot.svg)](https://github.com/Mai0313/llm_discord_bot/graphs/contributors)
 
 </center>
 
