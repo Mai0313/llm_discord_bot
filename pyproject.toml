@@ -66,7 +66,7 @@ authors = [
     { name = "Wei", email = "mai@mai0313.com" },
 ]
 dependencies = [
-    "autogen>=0.7.2",
+    "ag2[browser-use]>=0.7.2",
     "discord-py>=2.4.0",
     "logfire>=3.4.0",
     "openai>=1.60.2",
@@ -195,7 +195,7 @@ link-mode = "copy"
 native-tls = false
 no-binary = false
 offline = false
-prerelease = "if-necessary"
+prerelease = "if-necessary-or-explicit"
 preview = true
 
 # https://docs.astral.sh/uv/reference/settings/#index
