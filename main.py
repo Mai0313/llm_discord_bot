@@ -62,7 +62,7 @@ class DiscordBot(commands.Bot):
         await self.load_cogs()
         guild = None
         if self.config.discord_test_server_id:
-            guild = self.get_guild(int(self.config.discord_test_server_id))
+            guild = self.get_guild(self.config.discord_test_server_id)
         await self.tree.sync(guild=guild)
         self.status_task.start()
 

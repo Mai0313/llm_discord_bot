@@ -26,7 +26,6 @@ class ImageGeneratorCogs(commands.Cog):
         description="This command will generate an image based on the prompt given.",
         nsfw=False,
     )
-    @commands.command()
     async def graph_slash(self, interaction: discord.Interaction, *, prompt: str) -> None:
         await interaction.response.send_message(content="正在生成圖片...")
         try:
