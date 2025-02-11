@@ -66,7 +66,7 @@ authors = [
     { name = "Wei", email = "mai@mai0313.com" },
 ]
 dependencies = [
-    "ag2[browser-use]>=0.7.2",
+    "ag2[browser-use]>=0.7.3",
     "discord-py>=2.4.0",
     "logfire>=3.4.0",
     "openai>=1.60.2",

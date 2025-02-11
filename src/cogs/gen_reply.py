@@ -2,7 +2,9 @@ import base64
 import asyncio
 
 import aiohttp
-from discord import Message
+import discord
+from discord import Message, app_commands
+import logfire
 from discord.ext import commands
 
 from src.sdk.llm import LLMServices
@@ -32,8 +34,10 @@ class ReplyGeneratorCogs(commands.Cog):
         attachments = [*image_urls, *embed_list, *sticker_list]
         return attachments
 
-    @commands.command()
-    async def oai(self, ctx: commands.Context, *, prompt: str) -> None:
+    @commands.command(
+        name="oai", description="This command will generate a reply based on the prompt given."
+    )
+    async def oai_command(self, ctx: commands.Context, *, prompt: str) -> None:
         try:
             attachments = await self._get_attachment_list(message=ctx.message)
             response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
@@ -41,31 +45,24 @@ class ReplyGeneratorCogs(commands.Cog):
         except Exception as e:
             await ctx.send(content=f"處理訊息發生錯誤: {e!s}")
 
-    @commands.command()
-    async def wtf(self, ctx: commands.Context) -> None:
-        """解釋回復的消息"""
+    @app_commands.command(
+        name="oai",
+        description="This command will generate a reply based on the prompt given.",
+        nsfw=False,
+    )
+    async def oai_slash(self, ctx: commands.Context, *, prompt: str) -> None:
         try:
-            if not ctx.message.reference:
-                await ctx.send(content="請回復某條消息以使用此指令。")
-                return
-
-            # 獲取被回復的消息
-            replied_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-            attachments = await self._get_attachment_list(message=replied_message)
-
-            # 傳送內容給 LLM
-            prompt = f"用戶看不懂該對話，請嘗試解釋該對話的內容；如果用戶沒有說話 只傳送圖片，請解釋圖片的內容。\n{replied_message.content}"
-            explanation = await self.llm_services.get_oai_reply(
-                prompt=prompt, image_urls=attachments
-            )
-            explanation = explanation.choices[0].message.content
-
-            await ctx.send(explanation)
+            attachments = await self._get_attachment_list(message=ctx.message)
+            response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
+            await ctx.send(f"{ctx.author.mention} {response.choices[0].message.content}")
         except Exception as e:
-            await ctx.send(f"發生錯誤：{e}")
+            await ctx.send(content=f"處理訊息發生錯誤: {e!s}")
 
-    @commands.command()
-    async def oais(self, ctx: commands.Context, *, prompt: str) -> None:
+    @commands.command(
+        name="oais",
+        description="This command will generate a reply based on the prompt given and show the progress.",
+    )
+    async def oais_command(self, ctx: commands.Context, *, prompt: str) -> None:
         attachments = await self._get_attachment_list(message=ctx.message)
         msg = await ctx.send(content="生成中...")  # 初始化訊息
         accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容，初始包括用戶標記
@@ -93,6 +90,35 @@ class ReplyGeneratorCogs(commands.Cog):
             await msg.edit(content=accumulated_text)
         else:
             await msg.edit(content=f"{ctx.author.mention} 無有效回應，請嘗試其他提示。")
+
+    @app_commands.command(
+        name="oais",
+        description="This command will generate a reply based on the prompt given and show the progress.",
+        nsfw=False,
+    )
+    async def oais_slash(self, interaction: discord.Interaction, *, prompt: str) -> None:
+        attachments = await self._get_attachment_list(message=interaction.message)
+        await interaction.response.send_message(content="生成中...")
+
+        accumulated_text = (
+            f"{interaction.user.mention}\n"  # 用於存儲累計的生成內容，初始包括用戶標記
+        )
+
+        try:
+            async for res in self.llm_services.get_oai_reply_stream(
+                prompt=prompt, image_urls=attachments
+            ):
+                if hasattr(res, "choices") and len(res.choices) > 0:
+                    delta_content = res.choices[0].delta.content.strip()
+                    if delta_content:  # 確保生成內容非空
+                        accumulated_text += delta_content
+                        await interaction.response.edit_message(content=accumulated_text)
+
+        except Exception as e:
+            await interaction.response.edit_message(
+                content=f"{interaction.user.mention} 無有效回應，請嘗試其他提示。"
+            )
+            logfire.error(f"Error in oais: {e}")
 
 
 # 註冊 Cog

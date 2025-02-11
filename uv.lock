@@ -1880,7 +1880,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ag2", extras = ["browser-use"], specifier = ">=0.7.2" },
+    { name = "ag2", extras = ["browser-use"], specifier = ">=0.7.3" },
     { name = "discord-py", specifier = ">=2.4.0" },
     { name = "logfire", specifier = ">=3.4.0" },
     { name = "openai", specifier = ">=1.60.2" },
@@ -1918,7 +1918,7 @@ dev = [
 
 [[package]]
 name = "lmnr"
-version = "0.4.59"
+version = "0.4.60"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1939,9 +1939,9 @@ dependencies = [
     { name = "tenacity" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/32/da/48a141502bc41cf91baee00844b5009c250a9bc82e7d1f00b74bfa8f9161/lmnr-0.4.59.tar.gz", hash = "sha256:1e05258ef3ee4ef3bbdfdc84019da11c51db05b12ef0cd096d9fc9d3d8967ca7", size = 40094 }
+sdist = { url = "https://files.pythonhosted.org/packages/dc/bf/b41d8e9ca3fd5da712a8ae682b4e83afda36734d7d5935f6a28f2e73c9e2/lmnr-0.4.60.tar.gz", hash = "sha256:09c163c846963bee0ff879c53f48967c4e673a5983b8943cc6e945b04db707f6", size = 84614 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3f/86/ad6175087d1af6dd979a45cd8b4ac2635ea9f307ec6cd99b14fe50032c5d/lmnr-0.4.59-py3-none-any.whl", hash = "sha256:4658e0e0a5d4d2637d465ebc3e33efda9a86f219d808c0b838400718f2442502", size = 46350 },
+    { url = "https://files.pythonhosted.org/packages/03/80/7856767206296767e515d7241bd1df7829f14dd66b4e9c82544d00c474c0/lmnr-0.4.60-py3-none-any.whl", hash = "sha256:a88ff681c9122d29f3aca1949e0f1509eb87406838574b105472d1e4fca71416", size = 91048 },
 ]
 
 [package.optional-dependencies]
@@ -3082,7 +3082,7 @@ wheels = [
 
 [[package]]
 name = "posthog"
-version = "3.12.0"
+version = "3.12.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "backoff" },
@@ -3091,9 +3091,9 @@ dependencies = [
     { name = "requests" },
     { name = "six" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/73/03/46e690f652bb3117ee0833668176616829b1a9417505abfadbd96b1fc56f/posthog-3.12.0.tar.gz", hash = "sha256:0cdf914ece2a3fe9e0710a71ccfea8d008d4e7c16d0df62611282001a92ae3b8", size = 61640 }
+sdist = { url = "https://files.pythonhosted.org/packages/c4/39/12ff2ab6798f86832d822763d1f66b70d39743ead87d737f9eca55bfaadd/posthog-3.12.1.tar.gz", hash = "sha256:319036f83436981b3bdc750b0ed067b5439c510ed601933f8fc043d0989c73c6", size = 61754 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/80/6a/60075a722b98fb2d6ea126e6ac9d27cbcd2e4907193fbb082e88cf243658/posthog-3.12.0-py2.py3-none-any.whl", hash = "sha256:410aec128be879176306227e72c1a2533c944170c59c29d9878d427143d74ba9", size = 72351 },
+    { url = "https://files.pythonhosted.org/packages/db/56/1d828f4248a1b1933fca932fda101389681f468e194e193a6bf457364729/posthog-3.12.1-py2.py3-none-any.whl", hash = "sha256:f749bb4aa4610678c3ea71e0f491cfb2dce570196b9753a04260ff08e52dfb6d", size = 72471 },
 ]
 
 [[package]]
