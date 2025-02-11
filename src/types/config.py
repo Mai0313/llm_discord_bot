@@ -32,10 +32,10 @@ class Config(BaseSettings):
         frozen=False,
         deprecated=False,
     )
-    discord_test_server_id: Optional[int] = Field(
+    discord_test_server_id: Optional[str] = Field(
         default=None,
         description="The id of the test server for testing the bot.",
-        examples=[1143289646042853487],
+        examples=["1143289646042853487"],
         alias="DISCORD_TEST_SERVER_ID",
         frozen=False,
         deprecated=False,
