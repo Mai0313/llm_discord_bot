@@ -50,13 +50,15 @@ class ReplyGeneratorCogs(commands.Cog):
         description="This command will generate a reply based on the prompt given.",
         nsfw=False,
     )
-    async def oai_slash(self, ctx: commands.Context, *, prompt: str) -> None:
+    async def oai_slash(self, interaction: discord.Interaction, *, prompt: str) -> None:
         try:
-            attachments = await self._get_attachment_list(message=ctx.message)
+            attachments = await self._get_attachment_list(message=interaction.message)
             response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
-            await ctx.send(f"{ctx.author.mention} {response.choices[0].message.content}")
+            await interaction.response.send_message(
+                f"{interaction.message.author.mention} {response.choices[0].message.content}"
+            )
         except Exception as e:
-            await ctx.send(content=f"處理訊息發生錯誤: {e!s}")
+            await interaction.response.send_message(content=f"處理訊息發生錯誤: {e!s}")
 
     @commands.command(
         name="oais",
@@ -100,9 +102,7 @@ class ReplyGeneratorCogs(commands.Cog):
         attachments = await self._get_attachment_list(message=interaction.message)
         await interaction.response.send_message(content="生成中...")
 
-        accumulated_text = (
-            f"{interaction.user.mention}\n"  # 用於存儲累計的生成內容，初始包括用戶標記
-        )
+        accumulated_text = f"{interaction.user.mention}\n"
 
         try:
             async for res in self.llm_services.get_oai_reply_stream(
