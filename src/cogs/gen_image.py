@@ -12,21 +12,12 @@ class ImageGeneratorCogs(commands.Cog):
         self.config = Config()
         self.llm_services = LLMServices()
 
-    @commands.command()
-    async def graph(self, ctx: commands.Context, *, prompt: str) -> None:
-        msg = await ctx.send(content="正在生成圖片...")
-        try:
-            response = await self.llm_services.get_dalle_image(prompt=prompt)
-            await msg.edit(content=f"{ctx.author.mention}\n{response.data[0].url}")
-        except Exception as e:
-            await msg.edit(content=f"生成圖片時發生錯誤: {e!s}")
-
     @app_commands.command(
         name="graph",
         description="This command will generate an image based on the prompt given.",
         nsfw=False,
     )
-    async def graph_slash(self, interaction: discord.Interaction, *, prompt: str) -> None:
+    async def graph(self, interaction: discord.Interaction, *, prompt: str) -> None:
         await interaction.response.send_message(content="正在生成圖片...")
         try:
             response = await self.llm_services.get_dalle_image(prompt=prompt)

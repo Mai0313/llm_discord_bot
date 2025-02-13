@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 from src.sdk.llm import LLMServices
@@ -30,10 +31,13 @@ class MessageFetcher(commands.Cog):
         self.bot = bot
         self.llm_services = LLMServices(system_prompt=SUMMARY_PROMPT)
 
-    @commands.command()
+    @app_commands.command(
+        name="sum",
+        description="Summarizes the most recent N messages in the current channel. If a user is specified, only summarizes the most recent N messages from that user.",
+        nsfw=False,
+    )
     async def sum(self, ctx: commands.Context, *, prompt: str = "") -> None:
-        """Summarizes the most recent N messages in the current channel. If a user is specified,
-        only summarizes the most recent N messages from that user.
+        """Summarizes the most recent N messages in the current channel. If a user is specified, only summarizes the most recent N messages from that user.
 
         Args:
             ctx (commands.Context): The context in which the command was called.
