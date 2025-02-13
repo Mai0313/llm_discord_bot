@@ -1,10 +1,10 @@
 import base64
 
 import aiohttp
-import discord
-from discord import Message, app_commands
 import logfire
-from discord.ext import commands
+import nextcord
+from nextcord import Interaction
+from nextcord.ext import commands
 
 from src.sdk.llm import LLMServices
 
@@ -14,7 +14,7 @@ class ReplyGeneratorCogs(commands.Cog):
         self.bot = bot
         self.llm_services = LLMServices()
 
-    async def _get_attachment_list(self, message: Message) -> list[str]:
+    async def _get_attachment_list(self, message: nextcord.Message) -> list[str]:
         image_urls = []
         embed_list = []
         sticker_list = []
@@ -33,28 +33,30 @@ class ReplyGeneratorCogs(commands.Cog):
         attachments = [*image_urls, *embed_list, *sticker_list]
         return attachments
 
-    @app_commands.command(
+    @nextcord.slash_command(
         name="oai",
         description="This command will generate a reply based on the prompt given.",
+        dm_permission=True,
         nsfw=False,
     )
-    async def oai(self, interaction: discord.Interaction, *, prompt: str) -> None:
+    async def oai(self, interaction: Interaction, *, prompt: str) -> None:
         try:
-            attachments = await self._get_attachment_list(message=interaction.message)
+            attachments = await self._get_attachment_list(interaction.message)
             response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
             await interaction.response.send_message(
-                f"{interaction.message.author.mention} {response.choices[0].message.content}"
+                f"{interaction.user.mention} {response.choices[0].message.content}"
             )
         except Exception as e:
             await interaction.response.send_message(content=f"處理訊息發生錯誤: {e!s}")
 
-    @app_commands.command(
+    @nextcord.slash_command(
         name="oais",
         description="This command will generate a reply based on the prompt given and show the progress.",
+        dm_permission=True,
         nsfw=False,
     )
-    async def oais(self, interaction: discord.Interaction, *, prompt: str) -> None:
-        attachments = await self._get_attachment_list(message=interaction.message)
+    async def oais(self, interaction: Interaction, *, prompt: str) -> None:
+        attachments = await self._get_attachment_list(interaction.message)
         await interaction.response.send_message(content="生成中...")
 
         accumulated_text = f"{interaction.user.mention}\n"
@@ -63,14 +65,14 @@ class ReplyGeneratorCogs(commands.Cog):
             async for res in self.llm_services.get_oai_reply_stream(
                 prompt=prompt, image_urls=attachments
             ):
-                if hasattr(res, "choices") and len(res.choices) > 0:
+                if hasattr(res, "choices") and res.choices:
                     delta_content = res.choices[0].delta.content.strip()
-                    if delta_content:  # 確保生成內容非空
+                    if delta_content:
                         accumulated_text += delta_content
-                        await interaction.response.edit_message(content=accumulated_text)
+                        await interaction.followup.edit_message(content=accumulated_text)
 
         except Exception as e:
-            await interaction.response.edit_message(
+            await interaction.followup.edit_message(
                 content=f"{interaction.user.mention} 無有效回應，請嘗試其他提示。"
             )
             logfire.error(f"Error in oais: {e}")
@@ -78,4 +80,4 @@ class ReplyGeneratorCogs(commands.Cog):
 
 # 註冊 Cog
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(ReplyGeneratorCogs(bot))
+    bot.add_cog(ReplyGeneratorCogs(bot), override=True)

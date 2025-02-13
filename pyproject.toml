@@ -67,7 +67,6 @@ authors = [
 ]
 dependencies = [
     "ag2[browser-use]>=0.7.3",
-    "discord-py>=2.4.0",
     "logfire>=3.4.0",
     "nextcord>=2.6.0",
     "openai>=1.60.2",

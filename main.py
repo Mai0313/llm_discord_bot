@@ -4,9 +4,10 @@ from pathlib import Path
 import secrets
 import platform
 
-import discord
 import logfire
-from discord.ext import tasks, commands
+from logfire import LogfireLoggingHandler
+import nextcord
+from nextcord.ext import tasks, commands
 from src.types.config import Config
 
 logfire.configure(send_to_logfire=False, scrubbing=False)
@@ -17,13 +18,21 @@ class DiscordBot(commands.Bot):
     def __init__(self) -> None:
         super().__init__(
             command_prefix=commands.when_mentioned_or("!"),
-            intents=discord.Intents.all(),  # 啟用所有 Intents
+            intents=nextcord.Intents.all(),  # 啟用所有 Intents
             help_command=None,
+            description="A Discord bot made with Nextcord.",
         )
         self.config = Config()
+        self.logger = logging.getLogger("nextcord.state")
+        self.logger.setLevel(logging.INFO)
+        self.logger.addHandler(LogfireLoggingHandler())
+
+    async def on_connect(self) -> None:
+        logfire.info("Bot Connected", bot_name=self.user.name, bot_id=self.user.id)
 
     async def on_ready(self) -> None:
         app_info = await self.application_info()
+        await self.setup_hook()
         invite_url = (
             f"https://discord.com/oauth2/authorize?client_id={app_info.id}&permissions=8&scope=bot"
         )
@@ -31,19 +40,27 @@ class DiscordBot(commands.Bot):
         logfire.info("Bot Started", bot_name=self.user.name, bot_id=self.user.id)
         logfire.info(f"Invite Link: {invite_url}")
 
+    async def on_guild_available(self, guild: nextcord.Guild) -> None:
+        return await super().on_guild_available(guild)
+
     async def load_cogs(self) -> None:
         cog_path = Path("./src/cogs")
-        cog_files = [f.stem for f in cog_path.glob("*.py") if not f.stem.startswith("__")]
-        for cog_file in cog_files:
-            filename = f"src.cogs.{cog_file}"
-            await self.load_extension(filename)
+        cog_files = [
+            f"src.cogs.{f.stem}" for f in cog_path.glob("*.py") if not f.stem.startswith("__")
+        ]
+        self.load_extensions(cog_files, stop_at_error=True)
+        # for cog_file in cog_files:
+        #     filename = f"src.cogs.{cog_file}"
+        #     self.load_extension(filename)
         logfire.info("Cogs Loaded", cog_files=", ".join(cog_files))
 
     @tasks.loop(minutes=1.0)
     async def status_task(self) -> None:
         """Setup the game status task of the bot."""
         statuses = ["your mama"]
-        await self.change_presence(activity=discord.Game(secrets.choice(statuses)))
+        random_status = secrets.choice(statuses)
+        await self.change_presence(activity=nextcord.Game(random_status))
+        logfire.info("Status Changed", new_status=self.activity.name)
 
     @status_task.before_loop
     async def before_status_task(self) -> None:
@@ -55,18 +72,19 @@ class DiscordBot(commands.Bot):
         logfire.info(
             "Logged in",
             bot_name=self.user.name,
-            discord_version=discord.__version__,
+            discord_version=nextcord.__version__,
             python_version=platform.python_version(),
             system=f"{platform.system()} {platform.release()} ({os.name})",
         )
         await self.load_cogs()
-        guild = None
+        guild_id = None
         if self.config.discord_test_server_id:
-            guild = self.get_guild(self.config.discord_test_server_id)
-        await self.tree.sync(guild=guild)
+            guild_id = self.get_guild(self.config.discord_test_server_id)
+        # await self.tree.sync(guild=guild)
+        await self.sync_application_commands(guild_id=guild_id)
         self.status_task.start()
 
-    async def on_message(self, message: discord.Message) -> None:
+    async def on_message(self, message: nextcord.Message) -> None:
         """The code in this event is executed every time someone sends a message, with or without the prefix
 
         :param message: The message that was sent.
@@ -83,6 +101,7 @@ class DiscordBot(commands.Bot):
         full_command_name = context.command.qualified_name
         split = full_command_name.split(" ")
         executed_command = str(split[0])
+        logfire.info("Command Received", command=executed_command)
         if context.guild is not None:
             logfire.info(
                 f"Executed {executed_command} command in {context.guild.name} (ID: {context.guild.id}) by {context.author} (ID: {context.author.id})"
@@ -110,13 +129,13 @@ class DiscordBot(commands.Bot):
             minutes, seconds = divmod(error.retry_after, 60)
             hours, minutes = divmod(minutes, 60)
             hours = hours % 24
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description=f"**Please slow down** - You can use this command again in {f'{round(hours)} hours' if round(hours) > 0 else ''} {f'{round(minutes)} minutes' if round(minutes) > 0 else ''} {f'{round(seconds)} seconds' if round(seconds) > 0 else ''}.",
                 color=0xE02B2B,
             )
             await context.send(embed=embed)
         elif isinstance(error, commands.NotOwner):
-            embed = discord.Embed(description="You are not the owner of the bot!", color=0xE02B2B)
+            embed = nextcord.Embed(description="You are not the owner of the bot!", color=0xE02B2B)
             await context.send(embed=embed)
             if context.guild:
                 logfire.warn(
@@ -127,7 +146,7 @@ class DiscordBot(commands.Bot):
                     f"{context.author} (ID: {context.author.id}) tried to execute an owner only command in the bot's DMs, but the user is not an owner of the bot."
                 )
         elif isinstance(error, commands.MissingPermissions):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="You are missing the permission(s) `"
                 + ", ".join(error.missing_permissions)
                 + "` to execute this command!",
@@ -135,7 +154,7 @@ class DiscordBot(commands.Bot):
             )
             await context.send(embed=embed)
         elif isinstance(error, commands.BotMissingPermissions):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 description="I am missing the permission(s) `"
                 + ", ".join(error.missing_permissions)
                 + "` to fully perform this command!",
@@ -143,7 +162,7 @@ class DiscordBot(commands.Bot):
             )
             await context.send(embed=embed)
         elif isinstance(error, commands.MissingRequiredArgument):
-            embed = discord.Embed(
+            embed = nextcord.Embed(
                 title="Error!",
                 # We need to capitalize because the command arguments have no capital letter in the code and they are the first word in the error message.
                 description=str(error).capitalize(),

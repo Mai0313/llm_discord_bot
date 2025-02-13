@@ -1,6 +1,6 @@
-import discord
-from discord import app_commands
-from discord.ext import commands
+import nextcord
+from nextcord import Interaction
+from nextcord.ext import commands
 
 from src.sdk.llm import LLMServices
 
@@ -31,17 +31,21 @@ class MessageFetcher(commands.Cog):
         self.bot = bot
         self.llm_services = LLMServices(system_prompt=SUMMARY_PROMPT)
 
-    @app_commands.command(
+    @nextcord.slash_command(
         name="sum",
-        description="Summarizes the most recent N messages in the current channel. If a user is specified, only summarizes the most recent N messages from that user.",
+        description="Summarizes the most recent N messages in the current channel.",
+        dm_permission=True,
         nsfw=False,
     )
-    async def sum(self, ctx: commands.Context, *, prompt: str = "") -> None:
+    async def sum(
+        self, interaction: Interaction, history_count: int = 20, target_user: nextcord.User = None
+    ) -> None:
         """Summarizes the most recent N messages in the current channel. If a user is specified, only summarizes the most recent N messages from that user.
 
         Args:
-            ctx (commands.Context): The context in which the command was called.
-            prompt (str, optional): The command arguments provided by the user. Defaults to an empty string.
+            interaction (nextcord.Interaction): The interaction context.
+            history_count (int): The number of historical messages to summarize. Defaults to 20.
+            target_user (nextcord.User): The user whose messages to summarize. Defaults to None.
 
         Returns:
             None
@@ -54,17 +58,18 @@ class MessageFetcher(commands.Cog):
                 If no number is provided, the default is 20.
         """
         try:
-            # 1. 解析使用者輸入
-            history_count, target_user = self._parse_args(ctx, prompt)
-
             # 2. 從頻道抓取對應的歷史訊息
-            messages = await self._fetch_messages(ctx.channel, history_count, target_user)
+            messages = await self._fetch_messages(interaction.channel, history_count, target_user)
 
             if not messages:
                 if target_user:
-                    await ctx.send(f"在此頻道中找不到 {target_user.mention} 的相關訊息。")
+                    await interaction.response.send_message(
+                        f"在此頻道中找不到 {target_user.mention} 的相關訊息。", ephemeral=True
+                    )
                 else:
-                    await ctx.send("此頻道沒有可供總結的訊息。")
+                    await interaction.response.send_message(
+                        "此頻道沒有可供總結的訊息。", ephemeral=True
+                    )
                 return
 
             # 3. 整理訊息成文字
@@ -77,43 +82,15 @@ class MessageFetcher(commands.Cog):
             summary = await self._call_llm(final_prompt, attachments)
 
             # 6. 回傳總結結果
-            await ctx.send(summary)
+            await interaction.response.send_message(summary)
 
         except Exception as e:
             # 錯誤處理
-            await ctx.send(f"發生錯誤：{e}")
-
-    def _parse_args(self, ctx: commands.Context, prompt: str) -> tuple[int, discord.User | None]:
-        """Parses the user-provided arguments and returns a tuple containing the history count and the target user.
-
-        Args:
-            ctx (commands.Context): The context in which the command was invoked.
-            prompt (str): The user-provided arguments as a string.
-
-        Returns:
-            tuple[int, discord.User | None]: A tuple containing the history count (int) and the target user (discord.User or None).
-        """
-        args = prompt.strip().split()
-        history_count = 20
-        target_user = None
-
-        if args:
-            # 試著解析第一個參數為整數
-            try:
-                history_count = int(args[0])
-                # 若還有剩餘參數，嘗試取得 mentioned_user
-                if len(args) > 1 and ctx.message.mentions:
-                    target_user = ctx.message.mentions[0]
-            except ValueError:
-                # 第一個參數不是數字時
-                ctx.send("你輸入的不是數字，將自動總結最近 20 則消息。")
-                if ctx.message.mentions:
-                    target_user = ctx.message.mentions[0]
-        return history_count, target_user
+            await interaction.response.send_message(f"發生錯誤：{e}", ephemeral=True)
 
     async def _fetch_messages(
-        self, channel: discord.TextChannel, history_count: int, target_user: discord.User | None
-    ) -> list[discord.Message]:
+        self, channel: nextcord.TextChannel, history_count: int, target_user: nextcord.User | None
+    ) -> list[nextcord.Message]:
         """Fetches the most recent N messages from a Discord channel and filters them by user if specified.
 
         Args:
@@ -128,25 +105,21 @@ class MessageFetcher(commands.Cog):
         if target_user:
             # 從最舊到最新，過濾出指定用戶訊息
             async for msg in channel.history(limit=None):
-                if (
-                    msg.author.id == target_user.id
-                    and not msg.author.bot
-                    and not msg.content.startswith("!sum")
-                ):
+                if msg.author.id == target_user.id and not msg.author.bot:
                     messages.append(msg)
                     if len(messages) == history_count:
                         break
         else:
             # 直接抓取最近的 history_count 筆
             async for msg in channel.history(limit=history_count):
-                if not msg.author.bot and not msg.content.startswith("!sum"):
+                if not msg.author.bot:
                     messages.append(msg)
 
         # 依照訊息時間做排序（由舊到新）
         messages.reverse()
         return messages
 
-    def _format_messages(self, messages: list[discord.Message]) -> tuple[str, list[str]]:
+    def _format_messages(self, messages: list[nextcord.Message]) -> tuple[str, list[str]]:
         """Formats a list of Discord messages into a string and extracts embed descriptions or attachment URLs.
 
         Args:
@@ -213,4 +186,4 @@ class MessageFetcher(commands.Cog):
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(MessageFetcher(bot))
+    bot.add_cog(MessageFetcher(bot), override=True)

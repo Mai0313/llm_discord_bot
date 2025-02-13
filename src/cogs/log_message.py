@@ -2,11 +2,11 @@ from pathlib import Path
 import datetime
 
 import pandas as pd
-import discord
 import logfire
+import nextcord
 from sqlalchemy import create_engine
-from discord.ext import commands
-from discord.message import Attachment, StickerItem
+from nextcord.ext import commands
+from nextcord.message import Attachment, StickerItem
 
 from src.types.database import DatabaseConfig
 
@@ -18,7 +18,7 @@ class LogMessageCogs(commands.Cog):
         self.engine = create_engine(database.postgres.postgres_dsn, echo=True)
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message) -> None:
+    async def on_message(self, message: nextcord.Message) -> None:
         # 避免記錄到機器人自己的訊息
         if message.author.bot:
             return
@@ -46,7 +46,7 @@ class LogMessageCogs(commands.Cog):
         # 寫入 CSV（或改成寫入資料庫）
         self._save_message_data(message, attachment_paths, sticker_paths)
 
-    def _get_channel_name(self, message: discord.Message) -> str:
+    def _get_channel_name(self, message: nextcord.Message) -> str:
         """Determine if the message is from a direct message (DM) or a server channel,
         and return the corresponding name.
 
@@ -56,7 +56,7 @@ class LogMessageCogs(commands.Cog):
         Returns:
             str: The name of the channel or DM, formatted as "DM_<author_id>" for DMs or "<channel_name>_<channel_id>" for server channels.
         """
-        if isinstance(message.channel, discord.DMChannel):
+        if isinstance(message.channel, nextcord.DMChannel):
             return f"DM_{message.author.id}"
         return f"{message.channel.name}_{message.channel.id}"
 
@@ -98,12 +98,12 @@ class LogMessageCogs(commands.Cog):
                 base_dir.mkdir(parents=True, exist_ok=True)
                 await sticker.save(filepath)
                 saved_paths.append(str(filepath))
-            except discord.NotFound:
+            except nextcord.NotFound:
                 logfire.warn("Sticker is not found", sticker_id=sticker.id)
         return saved_paths
 
     def _save_message_data(
-        self, message: discord.Message, attachment_paths: list[str], sticker_paths: list[str]
+        self, message: nextcord.Message, attachment_paths: list[str], sticker_paths: list[str]
     ) -> None:
         """Saves message data to a CSV file.
 
@@ -139,4 +139,4 @@ class LogMessageCogs(commands.Cog):
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(LogMessageCogs(bot))
+    bot.add_cog(LogMessageCogs(bot), override=True)
