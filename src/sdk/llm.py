@@ -123,7 +123,7 @@ class LLMServices(Config):
         self, prompt: str, image_urls: Optional[list[str]] = None
     ) -> AsyncGenerator[ChatCompletionChunk, None]:
         content = await self.prepare_content(prompt, image_urls)
-        completion: AsyncStream[ChatCompletionChunk] = self.client.chat.completions.create(
+        completion: AsyncStream[ChatCompletionChunk] = await self.client.chat.completions.create(
             model=self.llm_model,
             messages=[
                 {"role": "system", "content": self.system_prompt},
