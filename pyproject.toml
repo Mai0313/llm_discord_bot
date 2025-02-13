@@ -66,7 +66,7 @@ authors = [
     { name = "Wei", email = "mai@mai0313.com" },
 ]
 dependencies = [
-    "ag2[browser-use]>=0.7.3",
+    "ag2>=0.7.4",
     "logfire>=3.4.0",
     "nextcord>=2.6.0",
     "openai>=1.60.2",
@@ -83,7 +83,7 @@ dependencies = [
     "sqlalchemy>=2.0.37",
 ]
 readme = "README.md"
-requires-python = ">= 3.11"
+requires-python = ">= 3.10"
 license = { text = "MIT" }
 
 [project.urls]
@@ -267,8 +267,8 @@ extend-include = ["**/*.ipynb", "*.sh"]
 # Allow imports relative to the "src" and "test" directories.
 src = ["src", "tests"]
 
-# Assume Python 3.11.*
-target-version = "py311"
+# Assume Python 3.10.*
+target-version = "py310"
 
 # Set the cache directory to `logs/ruff_cache`.
 cache-dir = "./.cache/ruff"  # default: ".ruff_cache", now it is not allowed to create cache dir in logs
@@ -519,7 +519,7 @@ ignore-words-list = ["ameba", "mke"]
 [tool.mypy]
 plugins = ["pydantic.mypy"]
 # strict = true
-python_version = "3.11"
+python_version = "3.10"
 explicit_package_bases = true
 cache_dir = "./.cache/.mypy_cache"
 exclude = ["^tests/"]
