@@ -69,5 +69,11 @@ jobs:
 
       - name: Run pytest
         if: steps.check_tests.outputs.has_tests == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+          ANONYMIZED_TELEMETRY: "false"
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_TEST_SERVER_ID: ${{ secrets.DISCORD_TEST_SERVER_ID }}
         run: |
           uv run pytest -vv
