@@ -3,7 +3,7 @@ import base64
 import aiohttp
 import logfire
 import nextcord
-from nextcord import Interaction
+from nextcord import Locale, Interaction, SlashOption
 from nextcord.ext import commands
 
 from src.sdk.llm import LLMServices
@@ -36,10 +36,25 @@ class ReplyGeneratorCogs(commands.Cog):
     @nextcord.slash_command(
         name="oai",
         description="This command will generate a reply based on the prompt given.",
+        name_localizations={Locale.zh_TW: "文字生成", Locale.ja: "テキスト生成"},
+        description_localizations={
+            Locale.zh_TW: "此指令將根據提供的提示生成回覆。",
+            Locale.ja: "このコマンドは、指定されたプロンプトに基づいて応答を生成します。",
+        },
         dm_permission=True,
         nsfw=False,
     )
-    async def oai(self, interaction: Interaction, *, prompt: str) -> None:
+    async def oai(
+        self,
+        interaction: Interaction,
+        prompt: str = SlashOption(
+            description="Enter your prompt",
+            description_localizations={
+                Locale.zh_TW: "輸入你的提示詞",
+                Locale.ja: "プロンプトを入力してください",
+            },
+        ),
+    ) -> None:
         try:
             attachments = await self._get_attachment_list(interaction.message)
             response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
@@ -52,10 +67,25 @@ class ReplyGeneratorCogs(commands.Cog):
     @nextcord.slash_command(
         name="oais",
         description="This command will generate a reply based on the prompt given and show the progress.",
+        name_localizations={Locale.zh_TW: "文字生成進度", Locale.ja: "テキスト生成進行中"},
+        description_localizations={
+            Locale.zh_TW: "此指令將根據提供的提示生成回覆並顯示進度。",
+            Locale.ja: "このコマンドは、指定されたプロンプトに基づいて応答を生成し、進行状況を表示します。",
+        },
         dm_permission=True,
         nsfw=False,
     )
-    async def oais(self, interaction: Interaction, *, prompt: str) -> None:
+    async def oais(
+        self,
+        interaction: Interaction,
+        prompt: str = SlashOption(
+            description="Enter your prompt",
+            description_localizations={
+                Locale.zh_TW: "輸入你的提示詞",
+                Locale.ja: "プロンプトを入力してください",
+            },
+        ),
+    ) -> None:
         attachments = await self._get_attachment_list(interaction.message)
         message = await interaction.response.send_message(content="生成中...")
         accumulated_text = f"{interaction.user.mention}\n"
