@@ -21,16 +21,14 @@ class ImageGeneratorCogs(commands.Cog):
     async def graph(
         self, interaction: Interaction, prompt: str = SlashOption(description="Enter your prompt")
     ) -> None:
-        await interaction.response.defer()
-        await interaction.followup.send(content="正在生成圖片...")
+        # await interaction.response.defer()
+        message = await interaction.response.send_message(content="正在生成圖片...")
 
         try:
             response = await self.llm_services.get_dalle_image(prompt=prompt)
-            await interaction.followup.send(
-                content=f"{interaction.user.mention}\n{response.data[0].url}"
-            )
+            await message.edit(content=f"{interaction.user.mention}\n{response.data[0].url}")
         except Exception as e:
-            await interaction.followup.send(content=f"生成圖片時發生錯誤: {e!s}")
+            await message.edit(content=f"生成圖片時發生錯誤: {e!s}")
 
 
 # 註冊 Cog

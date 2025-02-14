@@ -15,9 +15,9 @@ class ReplyGeneratorCogs(commands.Cog):
         self.llm_services = LLMServices()
 
     async def _get_attachment_list(self, message: nextcord.Message) -> list[str]:
-        image_urls = []
-        embed_list = []
-        sticker_list = []
+        image_urls, embed_list, sticker_list = [], [], []
+        if not message:
+            return []
         if message.attachments:
             image_urls = [attachment.url for attachment in message.attachments]
         if message.embeds:
@@ -57,24 +57,24 @@ class ReplyGeneratorCogs(commands.Cog):
     )
     async def oais(self, interaction: Interaction, *, prompt: str) -> None:
         attachments = await self._get_attachment_list(interaction.message)
-        await interaction.response.send_message(content="生成中...")
-
+        message = await interaction.response.send_message(content="生成中...")
         accumulated_text = f"{interaction.user.mention}\n"
 
         try:
             async for res in self.llm_services.get_oai_reply_stream(
                 prompt=prompt, image_urls=attachments
             ):
-                if hasattr(res, "choices") and res.choices:
+                if (
+                    hasattr(res, "choices")
+                    and len(res.choices) > 0
+                    and res.choices[0].delta.content
+                ):
                     delta_content = res.choices[0].delta.content.strip()
-                    if delta_content:
-                        accumulated_text += delta_content
-                        await interaction.followup.edit_message(content=accumulated_text)
+                    accumulated_text += delta_content
+                    await message.edit(content=accumulated_text)
 
         except Exception as e:
-            await interaction.followup.edit_message(
-                content=f"{interaction.user.mention} 無有效回應，請嘗試其他提示。"
-            )
+            await message.edit(content=f"{interaction.user.mention} 無有效回應，請嘗試其他提示。")
             logfire.error(f"Error in oais: {e}")
 
 
