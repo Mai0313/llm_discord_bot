@@ -1,5 +1,5 @@
 import nextcord
-from nextcord import Interaction
+from nextcord import Locale, Member, Interaction, SlashOption
 from nextcord.ext import commands
 
 from src.sdk.llm import LLMServices
@@ -33,12 +33,34 @@ class MessageFetcher(commands.Cog):
 
     @nextcord.slash_command(
         name="sum",
-        description="Summarizes the most recent N messages in the current channel.",
+        description="Summarize the most recent N messages in the current channel.",
+        name_localizations={Locale.zh_TW: "總結訊息", Locale.ja: "メッセージ要約"},
+        description_localizations={
+            Locale.zh_TW: "總結此頻道中最近 N 則訊息。",
+            Locale.ja: "このチャンネルの直近 N 件のメッセージを要約します。",
+        },
         dm_permission=True,
         nsfw=False,
     )
     async def sum(
-        self, interaction: Interaction, history_count: int = 20, target_user: nextcord.User = None
+        self,
+        interaction: Interaction,
+        history_count: int = SlashOption(
+            description="Number of messages to summarize.",
+            description_localizations={
+                Locale.zh_TW: "要總結的訊息數量。",
+                Locale.ja: "要約するメッセージの数。",
+            },
+            default=20,
+        ),
+        target_user: Member = SlashOption(
+            description="User to summarize messages from (optional).",
+            description_localizations={
+                Locale.zh_TW: "要總結訊息的目標使用者 (可選)。",
+                Locale.ja: "要約対象のユーザー (任意)。",
+            },
+            required=False,
+        ),
     ) -> None:
         """Summarizes the most recent N messages in the current channel. If a user is specified, only summarizes the most recent N messages from that user.
 

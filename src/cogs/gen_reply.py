@@ -35,11 +35,11 @@ class ReplyGeneratorCogs(commands.Cog):
 
     @nextcord.slash_command(
         name="oai",
-        description="This command will generate a reply based on the prompt given.",
-        name_localizations={Locale.zh_TW: "文字生成", Locale.ja: "テキスト生成"},
+        description="Generate a reply based on the given prompt.",
+        name_localizations={Locale.zh_TW: "生成文字", Locale.ja: "テキストを生成"},
         description_localizations={
-            Locale.zh_TW: "此指令將根據提供的提示生成回覆。",
-            Locale.ja: "このコマンドは、指定されたプロンプトに基づいて応答を生成します。",
+            Locale.zh_TW: "根據提供的提示詞生成回應。",
+            Locale.ja: "指定されたプロンプトに基づいて応答を生成します。",
         },
         dm_permission=True,
         nsfw=False,
@@ -48,10 +48,10 @@ class ReplyGeneratorCogs(commands.Cog):
         self,
         interaction: Interaction,
         prompt: str = SlashOption(
-            description="Enter your prompt",
+            description="Enter your prompt.",
             description_localizations={
-                Locale.zh_TW: "輸入你的提示詞",
-                Locale.ja: "プロンプトを入力してください",
+                Locale.zh_TW: "輸入提示詞。",
+                Locale.ja: "プロンプトを入力してください。",
             },
         ),
     ) -> None:
@@ -62,15 +62,15 @@ class ReplyGeneratorCogs(commands.Cog):
                 f"{interaction.user.mention} {response.choices[0].message.content}"
             )
         except Exception as e:
-            await interaction.response.send_message(content=f"處理訊息發生錯誤: {e!s}")
+            await interaction.response.send_message(content=f"處理訊息時發生錯誤: {e!s}")
 
     @nextcord.slash_command(
         name="oais",
-        description="This command will generate a reply based on the prompt given and show the progress.",
-        name_localizations={Locale.zh_TW: "文字生成進度", Locale.ja: "テキスト生成進行中"},
+        description="Generate a reply based on the given prompt and show progress.",
+        name_localizations={Locale.zh_TW: "生成文字並顯示進度", Locale.ja: "テキストを生成"},
         description_localizations={
             Locale.zh_TW: "此指令將根據提供的提示生成回覆並顯示進度。",
-            Locale.ja: "このコマンドは、指定されたプロンプトに基づいて応答を生成し、進行状況を表示します。",
+            Locale.ja: "指定されたプロンプトに基づいて応答を生成し、進行状況を表示します。",
         },
         dm_permission=True,
         nsfw=False,
@@ -81,7 +81,7 @@ class ReplyGeneratorCogs(commands.Cog):
         prompt: str = SlashOption(
             description="Enter your prompt",
             description_localizations={
-                Locale.zh_TW: "輸入你的提示詞",
+                Locale.zh_TW: "輸入提示詞",
                 Locale.ja: "プロンプトを入力してください",
             },
         ),
@@ -104,7 +104,9 @@ class ReplyGeneratorCogs(commands.Cog):
                     await message.edit(content=accumulated_text)
 
         except Exception as e:
-            await message.edit(content=f"{interaction.user.mention} 無有效回應，請嘗試其他提示。")
+            await message.edit(
+                content=f"{interaction.user.mention} 無法生成有效回應，請嘗試其他提示詞。"
+            )
             logfire.error(f"Error in oais: {e}")
 
 

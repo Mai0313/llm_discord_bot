@@ -14,11 +14,11 @@ class ImageGeneratorCogs(commands.Cog):
 
     @nextcord.slash_command(
         name="graph",
-        description="This command will generate an image based on the prompt given.",
-        name_localizations={Locale.zh_TW: "圖片生成", Locale.ja: "画像生成"},
+        description="Generate an image based on the given prompt.",
+        name_localizations={Locale.zh_TW: "生成圖片", Locale.ja: "画像を生成"},
         description_localizations={
-            Locale.zh_TW: "此指令將根據提供的提示生成圖片。",
-            Locale.ja: "このコマンドは、指定されたプロンプトに基づいて画像を生成します。",
+            Locale.zh_TW: "根據提供的提示詞生成圖片。",
+            Locale.ja: "指定されたプロンプトに基づいて画像を生成します。",
         },
         dm_permission=True,
         nsfw=False,
@@ -27,15 +27,14 @@ class ImageGeneratorCogs(commands.Cog):
         self,
         interaction: Interaction,
         prompt: str = SlashOption(
-            description="Enter your prompt",
+            description="Enter your prompt.",
             description_localizations={
-                "zh-TW": "輸入你的提示詞",
-                "ja": "プロンプトを入力してください",
-                "ko": "프롬프트를 입력하세요",
+                Locale.zh_TW: "輸入提示詞。",
+                Locale.ja: "プロンプトを入力してください。",
             },
         ),
     ) -> None:
-        message = await interaction.response.send_message(content="正在生成圖片...")
+        message = await interaction.response.send_message(content="圖片生成中...")
 
         try:
             response = await self.llm_services.get_dalle_image(prompt=prompt)
