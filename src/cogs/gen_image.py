@@ -1,6 +1,6 @@
-import discord
-from discord import app_commands
-from discord.ext import commands
+import nextcord
+from nextcord import Locale, Interaction, SlashOption
+from nextcord.ext import commands
 
 from src.sdk.llm import LLMServices
 from src.types.config import Config
@@ -12,31 +12,37 @@ class ImageGeneratorCogs(commands.Cog):
         self.config = Config()
         self.llm_services = LLMServices()
 
-    @commands.command()
-    async def graph(self, ctx: commands.Context, *, prompt: str) -> None:
-        msg = await ctx.send(content="正在生成圖片...")
-        try:
-            response = await self.llm_services.get_dalle_image(prompt=prompt)
-            await msg.edit(content=f"{ctx.author.mention}\n{response.data[0].url}")
-        except Exception as e:
-            await msg.edit(content=f"生成圖片時發生錯誤: {e!s}")
-
-    @app_commands.command(
+    @nextcord.slash_command(
         name="graph",
-        description="This command will generate an image based on the prompt given.",
+        description="Generate an image based on the given prompt.",
+        name_localizations={Locale.zh_TW: "生成圖片", Locale.ja: "画像を生成"},
+        description_localizations={
+            Locale.zh_TW: "根據提供的提示詞生成圖片。",
+            Locale.ja: "指定されたプロンプトに基づいて画像を生成します。",
+        },
+        dm_permission=True,
         nsfw=False,
     )
-    async def graph_slash(self, interaction: discord.Interaction, *, prompt: str) -> None:
-        await interaction.response.send_message(content="正在生成圖片...")
+    async def graph(
+        self,
+        interaction: Interaction,
+        prompt: str = SlashOption(
+            description="Enter your prompt.",
+            description_localizations={
+                Locale.zh_TW: "輸入提示詞。",
+                Locale.ja: "プロンプトを入力してください。",
+            },
+        ),
+    ) -> None:
+        message = await interaction.response.send_message(content="圖片生成中...")
+
         try:
             response = await self.llm_services.get_dalle_image(prompt=prompt)
-            await interaction.response.edit_message(
-                content=f"{interaction.message.author.mention}\n{response.data[0].url}"
-            )
+            await message.edit(content=f"{interaction.user.mention}\n{response.data[0].url}")
         except Exception as e:
-            await interaction.response.edit_message(content=f"生成圖片時發生錯誤: {e!s}")
+            await message.edit(content=f"生成圖片時發生錯誤: {e!s}")
 
 
 # 註冊 Cog
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(ImageGeneratorCogs(bot))
+    bot.add_cog(ImageGeneratorCogs(bot), override=True)

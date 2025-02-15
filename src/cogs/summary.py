@@ -1,5 +1,6 @@
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord import Locale, Member, Interaction
+from nextcord.ext import commands
 
 from src.sdk.llm import LLMServices
 
@@ -25,188 +26,157 @@ SUMMARY_MESSAGE = """
 """
 
 
+# --- 定義選單視窗 ---
+class SummarizeMenuView(nextcord.ui.View):
+    def __init__(self, bot: commands.Bot, original_interaction: Interaction, timeout: float = 60):
+        super().__init__(timeout=timeout)
+        self.bot = bot
+        self.original_interaction = original_interaction
+        self.history_count: int | None = None
+        self.target_user: Member | None = None
+
+    @nextcord.ui.select(
+        placeholder="選擇要總結的訊息數量",
+        options=[
+            nextcord.SelectOption(label="5", value="5"),
+            nextcord.SelectOption(label="10", value="10"),
+            nextcord.SelectOption(label="20", value="20"),
+            nextcord.SelectOption(label="50", value="50"),
+        ],
+    )
+    async def select_history_count(
+        self, select: nextcord.ui.Select, interaction: Interaction
+    ) -> None:
+        # 儲存選擇的訊息數量
+        self.history_count = int(select.values[0])
+        # 簡單回應以確認選擇（不會產生新訊息）
+        await interaction.response.defer()
+
+    @nextcord.ui.user_select(placeholder="選擇要總結的使用者 (可選)", min_values=0, max_values=1)
+    async def select_target_user(
+        self, user_select: nextcord.ui.UserSelect, interaction: Interaction
+    ) -> None:
+        # 如果有選擇使用者，則儲存；否則保持 None
+        if user_select.values:
+            self.target_user = user_select.values[0]
+        else:
+            self.target_user = None
+        await interaction.response.defer()
+
+    @nextcord.ui.button(label="提交", style=nextcord.ButtonStyle.primary)
+    async def submit(self, button: nextcord.ui.Button, interaction: Interaction) -> None:
+        # 如果使用者未選擇訊息數量，則採用預設 20
+        if self.history_count is None:
+            self.history_count = 20
+
+        # 取得負責訊息總結的 Cog
+        cog: MessageFetcher = self.bot.get_cog("MessageFetcher")
+        if cog is None:
+            await interaction.response.send_message("找不到訊息總結的處理器。", ephemeral=True)
+            self.stop()
+            return
+
+        # 回應「處理中…」（避免互動逾時）
+        await interaction.response.defer(ephemeral=True)
+
+        # 執行總結流程
+        summary = await cog.do_summarize(interaction.channel, self.history_count, self.target_user)
+        await interaction.followup.send(summary, ephemeral=True)
+        self.stop()
+
+
+# --- 原本的訊息總結 Cog ---
 class MessageFetcher(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.llm_services = LLMServices(system_prompt=SUMMARY_PROMPT)
 
-    @commands.command()
-    async def sum(self, ctx: commands.Context, *, prompt: str = "") -> None:
-        """Summarizes the most recent N messages in the current channel. If a user is specified,
-        only summarizes the most recent N messages from that user.
+    @nextcord.slash_command(
+        name="sum",
+        description="透過選單選擇總結訊息。",
+        name_localizations={Locale.zh_TW: "總結訊息", Locale.ja: "メッセージ要約"},
+        description_localizations={
+            Locale.zh_TW: "使用選單來總結此頻道中的訊息。",
+            Locale.ja: "メニュー選択を通じて、このチャンネルのメッセージを要約します。",
+        },
+        dm_permission=True,
+        nsfw=False,
+    )
+    async def sum(self, interaction: Interaction) -> None:
+        """呼叫此指令後，會彈出一個選單視窗讓你選擇
+        - 要總結的訊息數量
+        - 是否僅總結某個使用者的訊息（可選）
+        """
+        view = SummarizeMenuView(self.bot, interaction)
+        await interaction.response.send_message("請選擇總結選項：", view=view, ephemeral=True)
 
-        Args:
-            ctx (commands.Context): The context in which the command was called.
-            prompt (str, optional): The command arguments provided by the user. Defaults to an empty string.
+    async def do_summarize(
+        self, channel: nextcord.TextChannel, history_count: int, target_user: Member | None
+    ) -> str:
+        """根據頻道、訊息數量與目標使用者，抓取並整理訊息，
+        接著呼叫 LLM 來產生總結內容。
 
         Returns:
-            None
-
-        Raises:
-            Exception: If an error occurs during the summarization process.
-
-        Example:
-            !sum 10 @username
-                If no number is provided, the default is 20.
+            str: 總結的結果。
         """
-        try:
-            # 1. 解析使用者輸入
-            history_count, target_user = self._parse_args(ctx, prompt)
+        messages = await self._fetch_messages(channel, history_count, target_user)
+        if not messages:
+            if target_user:
+                return f"在此頻道中找不到 {target_user.mention} 的相關訊息。"
+            return "此頻道沒有可供總結的訊息。"
 
-            # 2. 從頻道抓取對應的歷史訊息
-            messages = await self._fetch_messages(ctx.channel, history_count, target_user)
-
-            if not messages:
-                if target_user:
-                    await ctx.send(f"在此頻道中找不到 {target_user.mention} 的相關訊息。")
-                else:
-                    await ctx.send("此頻道沒有可供總結的訊息。")
-                return
-
-            # 3. 整理訊息成文字
-            chat_history_string, attachments = self._format_messages(messages)
-
-            # 4. 建立要給模型的最終 Prompt
-            final_prompt = self._create_summary_prompt(history_count, chat_history_string)
-
-            # 5. 呼叫 LLM 進行總結
-            summary = await self._call_llm(final_prompt, attachments)
-
-            # 6. 回傳總結結果
-            await ctx.send(summary)
-
-        except Exception as e:
-            # 錯誤處理
-            await ctx.send(f"發生錯誤：{e}")
-
-    def _parse_args(self, ctx: commands.Context, prompt: str) -> tuple[int, discord.User | None]:
-        """Parses the user-provided arguments and returns a tuple containing the history count and the target user.
-
-        Args:
-            ctx (commands.Context): The context in which the command was invoked.
-            prompt (str): The user-provided arguments as a string.
-
-        Returns:
-            tuple[int, discord.User | None]: A tuple containing the history count (int) and the target user (discord.User or None).
-        """
-        args = prompt.strip().split()
-        history_count = 20
-        target_user = None
-
-        if args:
-            # 試著解析第一個參數為整數
-            try:
-                history_count = int(args[0])
-                # 若還有剩餘參數，嘗試取得 mentioned_user
-                if len(args) > 1 and ctx.message.mentions:
-                    target_user = ctx.message.mentions[0]
-            except ValueError:
-                # 第一個參數不是數字時
-                ctx.send("你輸入的不是數字，將自動總結最近 20 則消息。")
-                if ctx.message.mentions:
-                    target_user = ctx.message.mentions[0]
-        return history_count, target_user
+        chat_history_string, attachments = self._format_messages(messages)
+        final_prompt = self._create_summary_prompt(history_count, chat_history_string)
+        summary = await self._call_llm(final_prompt, attachments)
+        return summary
 
     async def _fetch_messages(
-        self, channel: discord.TextChannel, history_count: int, target_user: discord.User | None
-    ) -> list[discord.Message]:
-        """Fetches the most recent N messages from a Discord channel and filters them by user if specified.
-
-        Args:
-            channel (discord.TextChannel): The Discord channel from which to fetch messages.
-            history_count (int): The number of historical messages to fetch.
-            target_user (discord.User | None): The user whose messages to filter by.
-
-        Returns:
-            list[discord.Message]: A list of Discord message objects.
-        """
+        self, channel: nextcord.TextChannel, history_count: int, target_user: Member | None
+    ) -> list[nextcord.Message]:
         messages = []
         if target_user:
-            # 從最舊到最新，過濾出指定用戶訊息
+            # 從最舊到最新，過濾出指定使用者的訊息
             async for msg in channel.history(limit=None):
-                if (
-                    msg.author.id == target_user.id
-                    and not msg.author.bot
-                    and not msg.content.startswith("!sum")
-                ):
+                if msg.author.id == target_user.id and not msg.author.bot:
                     messages.append(msg)
                     if len(messages) == history_count:
                         break
         else:
-            # 直接抓取最近的 history_count 筆
+            # 直接抓取最近 history_count 筆非機器人訊息
             async for msg in channel.history(limit=history_count):
-                if not msg.author.bot and not msg.content.startswith("!sum"):
+                if not msg.author.bot:
                     messages.append(msg)
-
-        # 依照訊息時間做排序（由舊到新）
         messages.reverse()
         return messages
 
-    def _format_messages(self, messages: list[discord.Message]) -> tuple[str, list[str]]:
-        """Formats a list of Discord messages into a string and extracts embed descriptions or attachment URLs.
-
-        Args:
-            messages (list[discord.Message]): A list of Discord message objects to be formatted.
-
-        Returns:
-            tuple[str, list[str]]: A tuple containing:
-                - chat_history_string (str): A string containing the text of all messages.
-                - attachments (list[str]): A list of all links or descriptions that can be used as references.
-        """
+    def _format_messages(self, messages: list[nextcord.Message]) -> tuple[str, list[str]]:
         chat_history_lines = []
         attachments = []
-
         for msg in messages:
             content_text = msg.content
-
             if msg.embeds:
-                # 取出 embed 的描述
                 embed_descriptions = [
                     embed.description for embed in msg.embeds if embed.description
                 ]
-                # 當作參考資料
                 attachments.extend(embed_descriptions)
                 content_text = "嵌入內容: " + ", ".join(embed_descriptions)
-
             elif msg.attachments:
-                # 取出附件 URL
                 attachment_urls = [att.url for att in msg.attachments]
                 attachments.extend(attachment_urls)
                 content_text = "附件: " + ", ".join(attachment_urls)
-
             chat_history_lines.append(f"{msg.author.name}: {content_text}")
-
         chat_history_string = "\n".join(chat_history_lines)
         return chat_history_string, attachments
 
     def _create_summary_prompt(self, history_count: int, chat_history_string: str) -> str:
-        """Creates a summary prompt based on the SUMMARY_MESSAGE template.
-
-        Args:
-            history_count (int): The number of historical messages to include in the summary.
-            chat_history_string (str): The string representation of the chat history.
-
-        Returns:
-            str: The formatted summary prompt.
-        """
         return SUMMARY_MESSAGE.format(
             history_count=history_count, chat_history_string=chat_history_string
         )
 
     async def _call_llm(self, prompt: str, attachments: list[str]) -> str:
-        """Asynchronously calls the LLM (Language Learning Model) to summarize a message.
-
-        Args:
-            prompt (str): The prompt or message to be summarized.
-            attachments (list[str]): A list of URLs pointing to images, videos, or embedded description links that can be referenced.
-
-        Returns:
-            str: The summarized content returned by the LLM.
-        """
         response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
-        # 假設回傳格式: response.choices[0].message.content
         return response.choices[0].message.content
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(MessageFetcher(bot))
+    bot.add_cog(MessageFetcher(bot), override=True)
