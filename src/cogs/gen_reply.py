@@ -99,8 +99,7 @@ class ReplyGeneratorCogs(commands.Cog):
                     and len(res.choices) > 0
                     and res.choices[0].delta.content
                 ):
-                    delta_content = res.choices[0].delta.content.strip()
-                    accumulated_text += delta_content
+                    accumulated_text += res.choices[0].delta.content
                     await message.edit(content=accumulated_text)
 
         except Exception as e:
