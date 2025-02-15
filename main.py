@@ -5,12 +5,15 @@ import secrets
 import platform
 
 import logfire
+
+logfire.configure(send_to_logfire=False, scrubbing=False)
+
 from logfire import LogfireLoggingHandler
 import nextcord
 from nextcord.ext import tasks, commands
 from src.types.config import Config
+from src.sdk.log_message import MessageLogger
 
-logfire.configure(send_to_logfire=False, scrubbing=False)
 logging.getLogger("sqlalchemy.engine.Engine").disabled = True
 
 
@@ -91,6 +94,7 @@ class DiscordBot(commands.Bot):
         """
         if message.author == self.user or message.author.bot:
             return
+        await MessageLogger(message=message).log()
         await self.process_commands(message)
 
     async def on_command_completion(self, context: commands.Context) -> None:
@@ -98,6 +102,7 @@ class DiscordBot(commands.Bot):
 
         :param context: The context of the command that has been executed.
         """
+        await MessageLogger(message=context.message).log()
         full_command_name = context.command.qualified_name
         split = full_command_name.split(" ")
         executed_command = str(split[0])

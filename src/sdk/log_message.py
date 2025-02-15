@@ -4,51 +4,56 @@ import datetime
 import pandas as pd
 import logfire
 import nextcord
+from pydantic import Field, BaseModel, ConfigDict, computed_field
+import sqlalchemy
 from sqlalchemy import create_engine
-from nextcord.ext import commands
 from nextcord.message import Attachment, StickerItem
 
 from src.types.database import DatabaseConfig
 
 
-class LogMessageCogs(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-        database = DatabaseConfig()
-        self.engine = create_engine(database.postgres.postgres_dsn, echo=True)
+class MessageLogger(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    message: nextcord.Message
+    database: DatabaseConfig = Field(default_factory=DatabaseConfig)
 
-    @commands.Cog.listener()
-    async def on_message(self, message: nextcord.Message) -> None:
+    @computed_field
+    @property
+    def engine(self) -> sqlalchemy.Engine:
+        engine = create_engine(self.database.postgres.postgres_dsn, echo=True)
+        return engine
+
+    async def log(self) -> None:
+        """Log a message to a CSV file and save attachments and stickers to disk."""
         # 避免記錄到機器人自己的訊息
-        if message.author.bot:
+        if self.message.author.bot:
             return
 
         # 判斷頻道類型並獲取頻道名稱
-        channel_name = self._get_channel_name(message)
+        channel_name = await self._get_channel_name(self.message)
 
         # 產生今日資料夾，作為附件和貼圖的存放路徑
         today = datetime.date.today().isoformat()
         base_dir = Path("data") / today / channel_name
 
         # 保存附件與貼圖
-        attachment_paths = await self._save_attachments(message.attachments, base_dir)
-        sticker_paths = await self._save_stickers(message.stickers, base_dir)
+        attachment_paths = await self._save_attachments(self.message.attachments, base_dir)
+        sticker_paths = await self._save_stickers(self.message.stickers, base_dir)
 
         # 紀錄到 logfire
         logfire.info(
-            f"{message.author.name}: {message.content}",
-            author=message.author.name,
-            created_time=message.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            f"{self.message.author.name}: {self.message.content}",
+            author=self.message.author.name,
+            created_time=self.message.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             channel_name=channel_name,
-            channel_id=getattr(message.channel, "id", None),
+            channel_id=getattr(self.message.channel, "id", None),
         )
 
         # 寫入 CSV（或改成寫入資料庫）
-        self._save_message_data(message, attachment_paths, sticker_paths)
+        await self._save_message_data(self.message, attachment_paths, sticker_paths)
 
-    def _get_channel_name(self, message: nextcord.Message) -> str:
-        """Determine if the message is from a direct message (DM) or a server channel,
-        and return the corresponding name.
+    async def _get_channel_name(self, message: nextcord.Message) -> str:
+        """Determine if the message is from a direct message (DM) or a server channel, and return the corresponding name.
 
         Args:
             message (discord.Message): The message object to check.
@@ -102,7 +107,7 @@ class LogMessageCogs(commands.Cog):
                 logfire.warn("Sticker is not found", sticker_id=sticker.id)
         return saved_paths
 
-    def _save_message_data(
+    async def _save_message_data(
         self, message: nextcord.Message, attachment_paths: list[str], sticker_paths: list[str]
     ) -> None:
         """Saves message data to a CSV file.
@@ -136,7 +141,3 @@ class LogMessageCogs(commands.Cog):
 
         # # 繼續處理其他命令
         # await self.bot.process_commands(message)
-
-
-async def setup(bot: commands.Bot) -> None:
-    bot.add_cog(LogMessageCogs(bot), override=True)
