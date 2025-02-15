@@ -37,7 +37,12 @@ class RecordCog(commands.Cog):
         self.bot = bot
         self.voice_client = None
 
-    @nextcord.slash_command(name="join", description="讓機器人加入語音頻道（可選填頻道 ID）")
+    @nextcord.slash_command(
+        name="join",
+        description="讓機器人加入語音頻道（可選填頻道 ID）",
+        dm_permission=True,
+        nsfw=False,
+    )
     async def join(self, interaction: nextcord.Interaction, channel_id: int | None = None) -> None:
         """讓機器人加入語音頻道, 頻道 ID 可選填"""
         # 確保機器人未在語音頻道中
@@ -68,7 +73,7 @@ class RecordCog(commands.Cog):
         self.voice_client = await channel.connect(cls=AudioRecorder)
         await interaction.response.send_message(f"已加入語音頻道: {channel.name}")
 
-    @nextcord.slash_command(name="record", description="開始錄音")
+    @nextcord.slash_command(name="record", description="開始錄音", dm_permission=True, nsfw=False)
     async def record(self, interaction: nextcord.Interaction) -> None:
         """開始錄音"""
         if self.voice_client and isinstance(self.voice_client, AudioRecorder):
@@ -77,7 +82,9 @@ class RecordCog(commands.Cog):
         else:
             await interaction.response.send_message("機器人未在語音頻道內!", ephemeral=True)
 
-    @nextcord.slash_command(name="stop", description="停止錄音並儲存")
+    @nextcord.slash_command(
+        name="stop", description="停止錄音並儲存", dm_permission=True, nsfw=False
+    )
     async def stop(self, interaction: nextcord.Interaction) -> None:
         """停止錄音並儲存檔案"""
         if self.voice_client and isinstance(self.voice_client, AudioRecorder):
@@ -86,7 +93,9 @@ class RecordCog(commands.Cog):
         else:
             await interaction.response.send_message("沒有正在錄音的會話!", ephemeral=True)
 
-    @nextcord.slash_command(name="leave", description="讓機器人離開語音頻道")
+    @nextcord.slash_command(
+        name="leave", description="讓機器人離開語音頻道", dm_permission=True, nsfw=False
+    )
     async def leave(self, interaction: nextcord.Interaction) -> None:
         """讓機器人離開語音頻道"""
         if self.voice_client:
