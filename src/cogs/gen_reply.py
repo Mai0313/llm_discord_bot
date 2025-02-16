@@ -54,9 +54,21 @@ class ReplyGeneratorCogs(commands.Cog):
                 Locale.ja: "プロンプトを入力してください。",
             },
         ),
+        image: nextcord.Attachment = SlashOption(  # noqa: B008
+            description="(Optional) Upload an image.",
+            description_localizations={
+                Locale.zh_TW: "（可選）上傳一張圖片。",
+                Locale.ja: "（オプション）画像をアップロードしてください。",
+            },
+            required=False,
+        ),
     ) -> None:
         try:
+            # 先嘗試從 interaction.message 取得附件（如果有的話）
             attachments = await self._get_attachment_list(interaction.message)
+            # 再檢查參數是否有提供圖片，並加入附件列表
+            if image:
+                attachments.append(image.url)
             response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
             await interaction.response.send_message(
                 f"{interaction.user.mention} {response.choices[0].message.content}"
@@ -85,8 +97,19 @@ class ReplyGeneratorCogs(commands.Cog):
                 Locale.ja: "プロンプトを入力してください",
             },
         ),
+        image: nextcord.Attachment = SlashOption(  # noqa: B008
+            description="(Optional) Upload an image.",
+            description_localizations={
+                Locale.zh_TW: "（可選）上傳一張圖片。",
+                Locale.ja: "（オプション）画像をアップロードしてください。",
+            },
+            required=False,
+        ),
     ) -> None:
+        # 取得 message 附件並合併參數提供的圖片
         attachments = await self._get_attachment_list(interaction.message)
+        if image:
+            attachments.append(image.url)
         message = await interaction.response.send_message(content="生成中...")
         accumulated_text = f"{interaction.user.mention}\n"
 
