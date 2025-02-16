@@ -1,11 +1,10 @@
 import base64
-import asyncio
 
 import aiohttp
-import discord
-from discord import Message, app_commands
 import logfire
-from discord.ext import commands
+import nextcord
+from nextcord import Locale, Interaction, SlashOption
+from nextcord.ext import commands
 
 from src.sdk.llm import LLMServices
 
@@ -15,10 +14,10 @@ class ReplyGeneratorCogs(commands.Cog):
         self.bot = bot
         self.llm_services = LLMServices()
 
-    async def _get_attachment_list(self, message: Message) -> list[str]:
-        image_urls = []
-        embed_list = []
-        sticker_list = []
+    async def _get_attachment_list(self, message: nextcord.Message) -> list[str]:
+        image_urls, embed_list, sticker_list = [], [], []
+        if not message:
+            return []
         if message.attachments:
             image_urls = [attachment.url for attachment in message.attachments]
         if message.embeds:
@@ -34,93 +33,105 @@ class ReplyGeneratorCogs(commands.Cog):
         attachments = [*image_urls, *embed_list, *sticker_list]
         return attachments
 
-    @commands.command(
-        name="oai", description="This command will generate a reply based on the prompt given."
-    )
-    async def oai(self, ctx: commands.Context, *, prompt: str) -> None:
-        try:
-            attachments = await self._get_attachment_list(message=ctx.message)
-            response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
-            await ctx.send(f"{ctx.author.mention} {response.choices[0].message.content}")
-        except Exception as e:
-            await ctx.send(content=f"處理訊息發生錯誤: {e!s}")
-
-    @app_commands.command(
+    @nextcord.slash_command(
         name="oai",
-        description="This command will generate a reply based on the prompt given.",
+        description="Generate a reply based on the given prompt.",
+        name_localizations={Locale.zh_TW: "生成文字", Locale.ja: "テキストを生成"},
+        description_localizations={
+            Locale.zh_TW: "根據提供的提示詞生成回應。",
+            Locale.ja: "指定されたプロンプトに基づいて応答を生成します。",
+        },
+        dm_permission=True,
         nsfw=False,
     )
-    async def oai_slash(self, interaction: discord.Interaction, *, prompt: str) -> None:
+    async def oai(
+        self,
+        interaction: Interaction,
+        prompt: str = SlashOption(
+            description="Enter your prompt.",
+            description_localizations={
+                Locale.zh_TW: "輸入提示詞。",
+                Locale.ja: "プロンプトを入力してください。",
+            },
+        ),
+        image: nextcord.Attachment = SlashOption(  # noqa: B008
+            description="(Optional) Upload an image.",
+            description_localizations={
+                Locale.zh_TW: "（可選）上傳一張圖片。",
+                Locale.ja: "（オプション）画像をアップロードしてください。",
+            },
+            required=False,
+        ),
+    ) -> None:
         try:
-            attachments = await self._get_attachment_list(message=interaction.message)
+            # 先嘗試從 interaction.message 取得附件（如果有的話）
+            attachments = await self._get_attachment_list(interaction.message)
+            # 再檢查參數是否有提供圖片，並加入附件列表
+            if image:
+                attachments.append(image.url)
             response = await self.llm_services.get_oai_reply(prompt=prompt, image_urls=attachments)
             await interaction.response.send_message(
-                f"{interaction.message.author.mention} {response.choices[0].message.content}"
+                f"{interaction.user.mention} {response.choices[0].message.content}"
             )
         except Exception as e:
-            await interaction.response.send_message(content=f"處理訊息發生錯誤: {e!s}")
+            await interaction.response.send_message(content=f"處理訊息時發生錯誤: {e!s}")
 
-    @commands.command(
+    @nextcord.slash_command(
         name="oais",
-        description="This command will generate a reply based on the prompt given and show the progress.",
-    )
-    async def oais(self, ctx: commands.Context, *, prompt: str) -> None:
-        attachments = await self._get_attachment_list(message=ctx.message)
-        msg = await ctx.send(content="生成中...")  # 初始化訊息
-        accumulated_text = f"{ctx.author.mention}\n"  # 用於存儲累計的生成內容，初始包括用戶標記
-        buffer = ""  # 緩衝區，用於累積小段文字
-        update_interval = 1
-
-        async for res in self.llm_services.get_oai_reply_stream(
-            prompt=prompt, image_urls=attachments
-        ):
-            if hasattr(res, "choices") and len(res.choices) > 0:
-                delta_content = res.choices[0].delta.content.strip()
-                if delta_content:  # 確保生成內容非空
-                    buffer += delta_content
-
-            if buffer:  # 若緩衝區有內容，則更新訊息
-                accumulated_text += buffer
-                await msg.edit(content=accumulated_text)  # 更新訊息
-                buffer = ""  # 清空緩衝區
-                await asyncio.sleep(update_interval)  # 等待指定間隔
-
-        # 確保最終訊息完整
-        if buffer:
-            accumulated_text += buffer
-        if accumulated_text.strip():
-            await msg.edit(content=accumulated_text)
-        else:
-            await msg.edit(content=f"{ctx.author.mention} 無有效回應，請嘗試其他提示。")
-
-    @app_commands.command(
-        name="oais",
-        description="This command will generate a reply based on the prompt given and show the progress.",
+        description="Generate a reply based on the given prompt and show progress.",
+        name_localizations={Locale.zh_TW: "生成文字並顯示進度", Locale.ja: "テキストを生成"},
+        description_localizations={
+            Locale.zh_TW: "此指令將根據提供的提示生成回覆並顯示進度。",
+            Locale.ja: "指定されたプロンプトに基づいて応答を生成し、進行状況を表示します。",
+        },
+        dm_permission=True,
         nsfw=False,
     )
-    async def oais_slash(self, interaction: discord.Interaction, *, prompt: str) -> None:
-        attachments = await self._get_attachment_list(message=interaction.message)
-        await interaction.response.send_message(content="生成中...")
-
+    async def oais(
+        self,
+        interaction: Interaction,
+        prompt: str = SlashOption(
+            description="Enter your prompt",
+            description_localizations={
+                Locale.zh_TW: "輸入提示詞",
+                Locale.ja: "プロンプトを入力してください",
+            },
+        ),
+        image: nextcord.Attachment = SlashOption(  # noqa: B008
+            description="(Optional) Upload an image.",
+            description_localizations={
+                Locale.zh_TW: "（可選）上傳一張圖片。",
+                Locale.ja: "（オプション）画像をアップロードしてください。",
+            },
+            required=False,
+        ),
+    ) -> None:
+        # 取得 message 附件並合併參數提供的圖片
+        attachments = await self._get_attachment_list(interaction.message)
+        if image:
+            attachments.append(image.url)
+        message = await interaction.response.send_message(content="生成中...")
         accumulated_text = f"{interaction.user.mention}\n"
 
         try:
             async for res in self.llm_services.get_oai_reply_stream(
                 prompt=prompt, image_urls=attachments
             ):
-                if hasattr(res, "choices") and len(res.choices) > 0:
-                    delta_content = res.choices[0].delta.content.strip()
-                    if delta_content:  # 確保生成內容非空
-                        accumulated_text += delta_content
-                        await interaction.response.edit_message(content=accumulated_text)
+                if (
+                    hasattr(res, "choices")
+                    and len(res.choices) > 0
+                    and res.choices[0].delta.content
+                ):
+                    accumulated_text += res.choices[0].delta.content
+                    await message.edit(content=accumulated_text)
 
         except Exception as e:
-            await interaction.response.edit_message(
-                content=f"{interaction.user.mention} 無有效回應，請嘗試其他提示。"
+            await message.edit(
+                content=f"{interaction.user.mention} 無法生成有效回應，請嘗試其他提示詞。"
             )
             logfire.error(f"Error in oais: {e}")
 
 
 # 註冊 Cog
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(ReplyGeneratorCogs(bot))
+    bot.add_cog(ReplyGeneratorCogs(bot), override=True)
