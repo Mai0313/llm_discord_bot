@@ -2,6 +2,7 @@
 addopts = [
     "--color=yes",
     "--durations=0",
+    "--durations-min=0.1",
     "--strict-markers",
     "--doctest-modules",
     "--quiet",
@@ -74,7 +75,6 @@ dependencies = [
     "orjson>=3.10.15",
     "pandas>=2.2.3",
     "pillow>=11.1.0",
-    "psycopg2>=2.9.10",
     "psycopg2-binary>=2.9.10",
     "pydantic>=2.10.6",
     "pydantic-settings>=2.7.1",
@@ -97,21 +97,27 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-    "anyio>=4.8.0",
-    "fire>=0.7.0",
-    "genbadge[all]>=1.1.1",
-    "griffe-typingdoc>=0.2.7",
     "ipykernel>=6.29.5",
     "ipywidgets>=8.1.5",
-    "mkdocs-material>=9.5.49",
-    "mkdocstrings[python]>=0.27.0",
     "notebook>=7.3.2",
     "poethepoet>=0.32.2",
     "pre-commit>=4.0.1",
+]
+test = [
+    "genbadge[all]>=1.1.1",
     "pytest>=8.3.4",
-    "pytest-asyncio==0.23.8",
+    "pytest-asyncio>=0.25.3",
     "pytest-cov>=6.0.0",
-    "pytest-xdist>=3.6.1",
+    "pytest-xdist[psutil]>=3.6.1",
+]
+docs = [
+    "anyio>=4.8.0",
+    "fire>=0.7.0",
+    "griffe-typingdoc>=0.2.7",
+    "markdown-exec[ansi]>=1.10.0",
+    "mkdocs-autorefs>=1.3.1",
+    "mkdocs-material>=9.6.4",
+    "mkdocstrings[python]>=0.28.1",
     "rich>=13.9.4",
 ]
 
@@ -124,7 +130,7 @@ include = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/*"]
+packages = ["src/template"]
 
 [tool.hatch.build.targets.sdist]
 # Basically everything except hidden files/directories (such as .github, .devcontainers, .python-version, etc)
@@ -206,7 +212,7 @@ compile-bytecode = true
 # concurrent-installs = 4
 index-strategy = "unsafe-best-match"
 link-mode = "copy"
-native-tls = false
+native-tls = true
 no-binary = false
 offline = false
 prerelease = "if-necessary"

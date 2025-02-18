@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.10
+ARG PYTHON_VERSION=3.10.14
 FROM python:${PYTHON_VERSION} AS builder
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
@@ -35,7 +35,7 @@ FROM builder AS dev
 WORKDIR /base
 COPY ./pyproject.toml ./pyproject.toml
 # RUN uv sync --frozen && uv cache clean
-RUN uv export --no-hashes --output-file ./requirements-dev.lock && \
+RUN uv export --no-hashes --group docs --output-file ./requirements-dev.lock && \
     pip install -r ./requirements-dev.lock && \
     pip cache purge
 
