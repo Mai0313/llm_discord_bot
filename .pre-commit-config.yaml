@@ -103,7 +103,7 @@ repos:
           - "Types-attrs"
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.5.31
+    rev: 0.6.1
     hooks:
       - id: uv-sync
       - id: uv-lock
